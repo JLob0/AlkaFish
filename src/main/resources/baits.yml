@@ -1,0 +1,51 @@
+# Iscas do AlkaFish
+# Jogador segura a isca e joga a linha na água para criar uma "zona de isca".
+
+baits:
+  isca_simples:
+    display-name: "<gray>Isca Simples"
+    material: WHEAT_SEEDS
+    custom-model-data: 11001
+    duration-seconds: 60
+    radius: 5
+    rarity-bonus:
+      COMMON: 0.0
+      UNCOMMON: 0.05
+      RARE: 0.02
+    lore:
+      - "<gray>Uma isca básica."
+      - "<yellow>Duração: 1 minuto"
+      - "<green>+5% chance de Incomum"
+
+  isca_rara:
+    display-name: "<blue>Isca Rara"
+    material: GLOWSTONE_DUST
+    custom-model-data: 11002
+    duration-seconds: 120
+    radius: 7
+    rarity-bonus:
+      COMMON: -0.10
+      UNCOMMON: 0.10
+      RARE: 0.08
+      EPIC: 0.03
+    lore:
+      - "<blue>Uma isca brilhante."
+      - "<yellow>Duração: 2 minutos"
+      - "<green>+8% chance de Raro"
+
+  isca_lend:
+    display-name: "<gold>Isca Lendária"
+    material: NETHER_STAR
+    custom-model-data: 11003
+    duration-seconds: 180
+    radius: 10
+    rarity-bonus:
+      COMMON: -0.20
+      UNCOMMON: -0.10
+      RARE: 0.15
+      EPIC: 0.10
+      LEGENDARY: 0.05
+    lore:
+      - "<gold>Uma isca de outro mundo."
+      - "<yellow>Duração: 3 minutos"
+      - "<green>+5% chance de Lendário"

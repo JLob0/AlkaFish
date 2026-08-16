@@ -1,0 +1,33 @@
+# Configuração de torneios automáticos
+
+tournaments:
+  types:
+    BIGGEST_FISH:
+      weight: 30
+      display-name: "Maior Peixe"
+    MOST_FISH:
+      weight: 25
+      display-name: "Mais Peixes"
+    TOTAL_WEIGHT:
+      weight: 25
+      display-name: "Maior Peso Total"
+    FIRST_LEGENDARY:
+      weight: 10
+      display-name: "Primeiro Lendário"
+    RANDOM_RARITY_FIRST:
+      weight: 10
+      display-name: "Primeiro da Raridade"
+
+  rewards:
+    1:
+      - "eco give {player} 5000"
+      - "give {player} diamond 5"
+    2:
+      - "eco give {player} 2500"
+      - "give {player} diamond 2"
+    3:
+      - "eco give {player} 1000"
+
+  messages:
+    start-broadcast: "<gold><bold>🏆 Novo torneio de pesca começando!"
+    end-broadcast: "<gold><bold>🏆 Torneio encerrado! Veja os vencedores com /fish tournament"

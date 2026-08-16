@@ -1,0 +1,147 @@
+# Encantamentos custom das varas de pesca
+# Custo em nacar ("corais")
+
+enchantments:
+  lucky:
+    display-name: "<green>Sortudo"
+    description: "Aumenta a chance de pegar peixes melhores"
+    default-level: 0
+    max-level: 10
+    percentage-per-level: 1.0
+    cost:
+      base: 20
+      per-level: 15
+    menu-item:
+      can-upgrade:
+        material: EMERALD
+        custom-model-data: 30001
+        name: "<green>Sortudo"
+        lore:
+          - "<gray>Aumenta a chance de peixes melhores"
+          - ""
+          - "<gray>Nível: <green>{current}<gray>/<green>{max}"
+          - "<gray>Bônus atual: <green>+{bonus}%"
+          - ""
+          - "<gray>Custo: <aqua>{cost} nacar"
+          - ""
+          - "<green>Clique para evoluir"
+      cannot-upgrade:
+        material: EMERALD
+        custom-model-data: 30001
+        name: "<green>Sortudo"
+        lore:
+          - "<gray>Aumenta a chance de peixes melhores"
+          - ""
+          - "<gray>Nível: <green>{current}<gray>/<green>{max}"
+          - "<gray>Bônus atual: <green>+{bonus}%"
+          - ""
+          - "<red>Sem nacar suficiente."
+      max-level:
+        material: EMERALD
+        custom-model-data: 30001
+        name: "<green>Sortudo"
+        lore:
+          - "<gray>Aumenta a chance de peixes melhores"
+          - ""
+          - "<gray>Nível: <green>{current}<gray>/<green>{max}"
+          - "<gray>Bônus atual: <green>+{bonus}%"
+          - ""
+          - "<gold>Máximo alcançado!"
+
+  multiplier:
+    display-name: "<gold>Multiplicador"
+    description: "Aumenta o ganho de nacar ao pescar"
+    default-level: 0
+    max-level: 10
+    multiplier-per-level: 0.05
+    cost:
+      base: 25
+      per-level: 20
+    menu-item:
+      can-upgrade:
+        material: GOLD_INGOT
+        custom-model-data: 30002
+        name: "<gold>Multiplicador"
+        lore:
+          - "<gray>Aumenta o ganho de nacar"
+          - ""
+          - "<gray>Nível: <gold>{current}<gray>/<gold>{max}"
+          - "<gray>Multiplicador: <gold>+{bonus}%"
+          - ""
+          - "<gray>Custo: <aqua>{cost} nacar"
+          - ""
+          - "<green>Clique para evoluir"
+      cannot-upgrade:
+        material: GOLD_INGOT
+        custom-model-data: 30002
+        name: "<gold>Multiplicador"
+        lore:
+          - "<gray>Aumenta o ganho de nacar"
+          - ""
+          - "<gray>Nível: <gold>{current}<gray>/<gold>{max}"
+          - "<gray>Multiplicador: <gold>+{bonus}%"
+          - ""
+          - "<red>Sem nacar suficiente."
+      max-level:
+        material: GOLD_INGOT
+        custom-model-data: 30002
+        name: "<gold>Multiplicador"
+        lore:
+          - "<gray>Aumenta o ganho de nacar"
+          - ""
+          - "<gray>Nível: <gold>{current}<gray>/<gold>{max}"
+          - "<gray>Multiplicador: <gold>+{bonus}%"
+          - ""
+          - "<gold>Máximo alcançado!"
+
+  keychain:
+    display-name: "<yellow>Chaveiro"
+    description: "Chance de encontrar chaves/itens ao pescar"
+    default-level: 0
+    max-level: -1
+    percentage-per-level: 2.0
+    cost:
+      base: 50
+      per-level: 30
+    commands:
+      - "10.0,give {player} TRIPWIRE_HOOK 1"
+    messages:
+      title: "<yellow>Chave Encontrada!"
+      actionbar: ""
+      chat: ["<green>Você encontrou uma chave ao pescar!"]
+    menu-item:
+      can-upgrade:
+        material: TRIPWIRE_HOOK
+        custom-model-data: 30003
+        name: "<yellow>Chaveiro"
+        lore:
+          - "<gray>Chance de encontrar chaves"
+          - ""
+          - "<gray>Nível: <yellow>{current}<gray>/<yellow>{max}"
+          - "<gray>Chance: <yellow>{bonus}%"
+          - ""
+          - "<gray>Custo: <aqua>{cost} nacar"
+          - ""
+          - "<green>Clique para evoluir"
+      cannot-upgrade:
+        material: TRIPWIRE_HOOK
+        custom-model-data: 30003
+        name: "<yellow>Chaveiro"
+        lore:
+          - "<gray>Chance de encontrar chaves"
+          - ""
+          - "<gray>Nível: <yellow>{current}<gray>/<yellow>{max}"
+          - "<gray>Chance: <yellow>{bonus}%"
+          - ""
+          - "<red>Sem nacar suficiente."
+      max-level:
+        material: TRIPWIRE_HOOK
+        custom-model-data: 30003
+        name: "<yellow>Chaveiro"
+        lore:
+          - "<gray>Chance de encontrar chaves"
+          - ""
+          - "<gray>Nível: <yellow>{current}<gray>/<yellow>{max}"
+          - "<gray>Chance: <yellow>{bonus}%"
+          - ""
+          - "<gold>Máximo alcançado!"

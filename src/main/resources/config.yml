@@ -1,0 +1,114 @@
+# ================= AlkaFish =================
+
+leveling:
+  max-level: 50
+  base-xp: 100
+  xp-multiplier: 1.5
+
+tension-game:
+  enabled: true
+  base-duration-ticks: 100
+  difficulty-scaling: 0.8
+
+tournaments:
+  auto-start-enabled: true
+  auto-start-interval-minutes: 120
+  default-duration-minutes: 15
+  sell-multiplier-during-tournament: 1.5
+  rewards:
+    1:
+      - "eco give {player} 5000"
+      - "give {player} diamond 5"
+    2:
+      - "eco give {player} 2500"
+      - "give {player} diamond 2"
+    3:
+      - "eco give {player} 1000"
+
+integrations:
+  alkashop-sell-enabled: true
+  alkadrop-auto-sell: false
+  itemsadder-textures: true
+  worldguard-regions: true
+  alkavips:
+    luck-vip-id: "vip_fisher"
+    luck-bonus: 0.05
+
+cooking:
+  enabled: true
+
+# === NOVAS SEÇÕES v1.1.0 ===
+rods:
+  enabled: true
+  evolute-crescent: true
+  sum-evolute: true
+  rod-slot: 0
+
+classes:
+  enabled: true
+  ordered: true
+
+npc:
+  enabled: true
+
+fishing-area:
+  enabled: true
+  water-radius: 10.0
+  verify-water: false
+  cancel-fish-interact: false
+  time-restrict:
+    enabled: false
+    gmt-offset: -3
+    from: "10:00"
+    to: "18:00"
+  invisibility:
+    enabled: true
+    auto-toggle: true
+  pvp: false
+  allowed-commands:
+    - "/g"
+    - "/l"
+    - "/fish"
+  exit-commands:
+    - "/spawn"
+    - "/sair"
+
+mcmmo:
+  enabled: true
+  skill-name: "FISHING"
+  base-xp: 5.0
+
+area-scoreboard:
+  enabled: true
+  title: "<dark_aqua><bold>AlkaFish"
+  delay-seconds: 1
+  lines:
+    - "<gray> Área de Pesca"
+    - ""
+    - "<gray>Status: <green>{status}"
+    - ""
+    - "<gray>Peixes: <aqua>{fished}"
+    - "<gray>Tempo: <aqua>{time}"
+    - ""
+    - "<dark_aqua> Vara"
+    - "<dark_gray> ❘<gray> Nível: <aqua>{rod_level}"
+    - "<dark_gray> ❘<gray> Nacar: <aqua>{nacar_has}<gray>/<aqua>{nacar_next}"
+    - "<dark_gray> ❘ {progressbar}"
+    - ""
+    - "<gray>Classe: <aqua>{class}"
+    - ""
+    - "<gray>Coins: <green>${money}"
+
+fish-bag:
+  base-capacity-kg: 50.0
+  capacity-upgrade-cost-coins: 1000
+  capacity-upgrade-cost-nacar: 50
+  capacity-per-upgrade: 10.0
+
+auto-sell:
+  enabled: true
+  delay-seconds: 5
+  close-menu: true
+
+stock-market:
+  enabled: false

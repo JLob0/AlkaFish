@@ -1,0 +1,156 @@
+# Varas de pesca evolutivas do AlkaFish
+
+rods:
+  wooden:
+    level: 1
+    display-name: "<gray>Vara de Madeira"
+    material: FISHING_ROD
+    custom-model-data: 20001
+    supported-weight: 5.0
+    delay-seconds: 8
+    break-on-heavy: true
+    allow-auto-sell: false
+    repair-cost:
+      coins: 50.0
+      nacar: 0
+    upgrade-cost:
+      coins: 0
+      nacar: 0
+    enchant-base-cost: 10
+    rewards:
+      - "10.0,common_reward"
+    item:
+      name: "<b>Vara de Pesca <gray>[Lvl.{level}]"
+      lore:
+        - ""
+        - "<gray>❘ Peso suportado: <green>{weight}kg"
+        - "<gray>❘ Delay: <green>{delay}s"
+        - "<gray>❘ Nacar: <aqua>{nacar_has}<gray>/<aqua>{nacar_next} <gray>({progressbar}<gray>)"
+        - ""
+        - "{enchants}"
+        - ""
+        - "<dark_gray>Inquebrável ∞"
+    shop:
+      upgrade:
+        material: FISHING_ROD
+        name: "<b>Vara de Pesca <gray>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<green>Clique para obter (Grátis)"
+      has:
+        material: FISHING_ROD
+        name: "<b>Vara de Pesca <gray>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<red>Você já possui uma vara igual ou melhor."
+
+  iron:
+    level: 2
+    display-name: "<white>Vara de Ferro"
+    material: FISHING_ROD
+    custom-model-data: 20002
+    supported-weight: 15.0
+    delay-seconds: 6
+    break-on-heavy: true
+    allow-auto-sell: true
+    repair-cost:
+      coins: 100.0
+      nacar: 5
+    upgrade-cost:
+      coins: 500.0
+      nacar: 10
+    enchant-base-cost: 20
+    rewards:
+      - "15.0,common_reward"
+      - "5.0,rare_reward"
+    item:
+      name: "<b>Vara de Ferro <white>[Lvl.{level}]"
+      lore:
+        - ""
+        - "<gray>❘ Peso suportado: <green>{weight}kg"
+        - "<gray>❘ Delay: <green>{delay}s"
+        - "<gray>❘ Nacar: <aqua>{nacar_has}<gray>/<aqua>{nacar_next} <gray>({progressbar}<gray>)"
+        - ""
+        - "{enchants}"
+        - ""
+        - "<dark_gray>Inquebrável ∞"
+    shop:
+      upgrade:
+        material: FISHING_ROD
+        name: "<b>Vara de Ferro <white>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - ""
+          - "<green>Clique para upar"
+      has:
+        material: FISHING_ROD
+        name: "<b>Vara de Ferro <white>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<red>Você já possui uma vara igual ou melhor."
+
+  diamond:
+    level: 3
+    display-name: "<aqua>Vara de Diamante"
+    material: FISHING_ROD
+    custom-model-data: 20003
+    supported-weight: 30.0
+    delay-seconds: 4
+    break-on-heavy: true
+    allow-auto-sell: true
+    repair-cost:
+      coins: 250.0
+      nacar: 15
+    upgrade-cost:
+      coins: 2000.0
+      nacar: 50
+    enchant-base-cost: 50
+    rewards:
+      - "20.0,common_reward"
+      - "10.0,rare_reward"
+      - "3.0,legendary_reward"
+    item:
+      name: "<b>Vara de Diamante <aqua>[Lvl.{level}]"
+      lore:
+        - ""
+        - "<gray>❘ Peso suportado: <green>{weight}kg"
+        - "<gray>❘ Delay: <green>{delay}s"
+        - "<gray>❘ Nacar: <aqua>{nacar_has}<gray>/<aqua>{nacar_next} <gray>({progressbar}<gray>)"
+        - ""
+        - "{enchants}"
+        - ""
+        - "<dark_gray>Inquebrável ∞"
+    shop:
+      upgrade:
+        material: FISHING_ROD
+        name: "<b>Vara de Diamante <aqua>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - ""
+          - "<green>Clique para upar"
+      has:
+        material: FISHING_ROD
+        name: "<b>Vara de Diamante <aqua>[Lvl.{level}]"
+        lore:
+          - ""
+          - "<gray>❘ Peso suportado: <green>{weight}kg"
+          - "<gray>❘ Delay: <green>{delay}s"
+          - ""
+          - "<red>Você já possui uma vara igual ou melhor."

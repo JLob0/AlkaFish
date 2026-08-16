@@ -1,0 +1,24 @@
+# Recompensas ao pescar com varas
+
+rewards:
+  common_reward:
+    display-name: "<gray>Recompensa Comum"
+    commands:
+      - "give {player} COD 1"
+    messages:
+      actionbar: "<gray>Você ganhou um bônus ao pescar!"
+  rare_reward:
+    display-name: "<blue>Recompensa Rara"
+    commands:
+      - "give {player} SALMON 1"
+      - "eco give {player} 50"
+    messages:
+      actionbar: "<blue>Você ganhou uma recompensa rara!"
+  legendary_reward:
+    display-name: "<gold>Recompensa Lendária"
+    commands:
+      - "give {player} DIAMOND 1"
+      - "eco give {player} 500"
+    messages:
+      title: "<gold>Recompensa Lendária!"
+      actionbar: "<gold>Você ganhou uma recompensa lendária ao pescar!"

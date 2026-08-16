@@ -1,0 +1,5 @@
+# Sistema de culinária do AlkaFish
+# Peixe cru -> Filete cozido (fornalha) com efeitos baseados na raridade
+
+cooking:
+  enabled: true

@@ -1,0 +1,23 @@
+# NPC de pesca do AlkaFish
+# Requer Citizens (softdepend)
+
+npc:
+  enabled: true
+  name: "&6&lPESCADOR"
+  skin: "Notch"
+  location:
+    world: "world"
+    x: 0.0
+    y: 64.0
+    z: 0.0
+    yaw: 0.0
+    pitch: 0.0
+  hologram:
+    enabled: true
+    offset-y: 3.0
+    lines:
+      - "<gold><bold>🎣 PESCA"
+      - "<gray>Pesque peixes no servidor!"
+      - "<yellow>Clique para começar"
+  click-command: "fish"
+  click-message: "<green>Abra o menu de pesca com <yellow>/fish"

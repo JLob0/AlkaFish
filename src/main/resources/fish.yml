@@ -1,0 +1,204 @@
+# Definição de peixes do AlkaFish
+# Raridades: COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC
+
+fish:
+  sardinha:
+    display-name: "<gray>Sardinha"
+    rarity: COMMON
+    biomes:
+      - OCEAN
+      - BEACH
+      - RIVER
+    min-length: 10.0
+    max-length: 25.0
+    min-weight: 0.1
+    max-weight: 0.3
+    base-price: 5.0
+    items-adder-id: "alkafish:sardinha"
+    custom-model-data: 10001
+    requires-night: false
+    requires-rain: false
+    min-depth: 1
+    xp-reward: 10.0
+    lore:
+      - "<gray>Uma sardinha comum."
+      - "<dark_gray>Tamanho: {length}cm"
+
+  tainha:
+    display-name: "<gray>Tainha"
+    rarity: COMMON
+    biomes:
+      - OCEAN
+      - BEACH
+    min-length: 20.0
+    max-length: 45.0
+    min-weight: 0.5
+    max-weight: 1.5
+    base-price: 8.0
+    items-adder-id: "alkafish:tainha"
+    custom-model-data: 10002
+    requires-night: false
+    requires-rain: false
+    min-depth: 2
+    xp-reward: 12.0
+    lore:
+      - "<gray>Popular em praias."
+
+  robalo:
+    display-name: "<green>Robalo"
+    rarity: UNCOMMON
+    biomes:
+      - OCEAN
+      - RIVER
+    min-length: 30.0
+    max-length: 70.0
+    min-weight: 1.0
+    max-weight: 3.0
+    base-price: 20.0
+    items-adder-id: "alkafish:robalo"
+    custom-model-data: 10003
+    requires-night: false
+    requires-rain: false
+    min-depth: 3
+    xp-reward: 25.0
+    lore:
+      - "<gray>Um peixe de água salgada."
+
+  dourado:
+    display-name: "<green>Dourado"
+    rarity: UNCOMMON
+    biomes:
+      - RIVER
+      - SWAMP
+    min-length: 25.0
+    max-length: 60.0
+    min-weight: 0.8
+    max-weight: 2.5
+    base-price: 18.0
+    items-adder-id: "alkafish:dourado"
+    custom-model-data: 10004
+    requires-night: false
+    requires-rain: true
+    min-depth: 2
+    xp-reward: 22.0
+    lore:
+      - "<gray>Aparece mais na chuva."
+
+  atum:
+    display-name: "<blue>Atum"
+    rarity: RARE
+    biomes:
+      - OCEAN
+      - DEEP_OCEAN
+    min-length: 80.0
+    max-length: 200.0
+    min-weight: 5.0
+    max-weight: 20.0
+    base-price: 80.0
+    items-adder-id: "alkafish:atum"
+    custom-model-data: 10005
+    requires-night: false
+    requires-rain: false
+    min-depth: 10
+    xp-reward: 60.0
+    lore:
+      - "<gray>Grande e valioso."
+
+  pirarucu:
+    display-name: "<blue>Pirarucu"
+    rarity: RARE
+    biomes:
+      - RIVER
+      - SWAMP
+    min-length: 100.0
+    max-length: 250.0
+    min-weight: 8.0
+    max-weight: 30.0
+    base-price: 100.0
+    items-adder-id: "alkafish:pirarucu"
+    custom-model-data: 10006
+    requires-night: true
+    requires-rain: false
+    min-depth: 5
+    xp-reward: 75.0
+    lore:
+      - "<gray>O gigante dos rios."
+
+  tubarao_martelo:
+    display-name: "<dark_purple>Tubarão Martelo"
+    rarity: EPIC
+    biomes:
+      - OCEAN
+      - DEEP_OCEAN
+    min-length: 150.0
+    max-length: 400.0
+    min-weight: 50.0
+    max-weight: 150.0
+    base-price: 300.0
+    items-adder-id: "alkafish:tubarao_martelo"
+    custom-model-data: 10007
+    requires-night: true
+    requires-rain: false
+    min-depth: 15
+    xp-reward: 150.0
+    lore:
+      - "<gray>Um predador impressionante."
+
+  peixe_boi:
+    display-name: "<dark_purple>Peixe-Boi Marinho"
+    rarity: EPIC
+    biomes:
+      - WARM_OCEAN
+    min-length: 200.0
+    max-length: 350.0
+    min-weight: 200.0
+    max-weight: 400.0
+    base-price: 400.0
+    items-adder-id: "alkafish:peixe_boi"
+    custom-model-data: 10008
+    requires-night: false
+    requires-rain: false
+    min-depth: 5
+    xp-reward: 180.0
+    lore:
+      - "<gray>Gentil gigante dos mares tropicais."
+
+  baleia_azul:
+    display-name: "<gold>🐋 Baleia Azul"
+    rarity: LEGENDARY
+    biomes:
+      - DEEP_OCEAN
+    min-length: 2000.0
+    max-length: 3000.0
+    min-weight: 5000.0
+    max-weight: 10000.0
+    base-price: 5000.0
+    items-adder-id: "alkafish:baleia_azul"
+    custom-model-data: 10009
+    requires-night: false
+    requires-rain: false
+    min-depth: 30
+    xp-reward: 500.0
+    lore:
+      - "<yellow>O maior animal do planeta."
+      - "<gold>Um achado lendário!"
+
+  kraken:
+    display-name: "<red>🦑 Kraken"
+    rarity: MYTHIC
+    biomes:
+      - DEEP_OCEAN
+    min-length: 500.0
+    max-length: 800.0
+    min-weight: 1000.0
+    max-weight: 2000.0
+    base-price: 15000.0
+    items-adder-id: "alkafish:kraken"
+    custom-model-data: 10010
+    requires-night: true
+    requires-rain: true
+    min-depth: 40
+    xp-reward: 2000.0
+    lore:
+      - "<red><bold>UM MONSTRO DAS PROFUNDEZAS!"
+      - "<dark_red>Dizem que afunda navios..."

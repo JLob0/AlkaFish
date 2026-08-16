@@ -1,0 +1,107 @@
+# Mensagens do AlkaFish (MiniMessage)
+
+prefix: "<dark_aqua>[AlkaFish] "
+
+fish:
+  caught: "{prefix}<green>Você pescou um {rarity} <green>de <yellow>{length}cm <green>e <yellow>{weight}kg<green>!"
+  escaped: "{prefix}<red>O peixe escapou..."
+  bag-full: "{prefix}<red>Sua Fish Bag está cheia! Venda alguns peixes."
+  legendary-broadcast: "<gold><bold>🏆 {player} pescou um {fish} LENDÁRIO de {length}cm!"
+
+bag:
+  opened: "{prefix}<gray>Abrindo Fish Bag..."
+  weight-status: "<gray>Peso: <aqua>{current}<gray>/<aqua>{max} kg"
+
+sell:
+  no-fish: "{prefix}<red>Você não tem peixes para vender!"
+  success: "{prefix}<green>Vendido <yellow>{count} <green>peixes por <yellow>${amount}<green>!"
+  cancelled: "{prefix}<gray>Venda cancelada."
+  autosell-toggle: "{prefix}<gray>Auto-venda configurada no AlkaShop."
+
+tournament:
+  joined: "{prefix}<green>Você entrou no torneio!"
+  score: "{prefix}<gray>Sua pontuação: <aqua>{score}"
+  position: "{prefix}<gray>Sua posição: <aqua>#{position}"
+  no-active: "{prefix}<red>Não há torneio ativo no momento."
+
+level:
+  up: "{prefix}<gold><bold>LEVEL UP! <yellow>Você alcançou o nível <aqua>{level}<yellow>!"
+  xp-gained: "{prefix}<gray>+{xp} XP de pesca"
+
+stats:
+  header: "<dark_aqua><bold>🎣 Suas Estatísticas"
+  level: "<gray>Nível: <aqua>{level}"
+  xp: "<gray>XP: <aqua>{xp}"
+  total: "<gray>Total pescado: <aqua>{total}"
+  biggest: "<gray>Maior peixe: <aqua>{length}"
+
+help:
+  header: "<dark_aqua><bold>🎣 AlkaFish - Comandos"
+  bag: "<gray>/fish <yellow>- Abre sua Fish Bag"
+  sell: "<gray>/fish sell <yellow>- Vender peixes"
+  codex: "<gray>/fish codex <yellow>- Ver coleção"
+  tournament: "<gray>/fish tournament <yellow>- Info do torneio"
+  stats: "<gray>/fish stats <yellow>- Suas estatísticas"
+  rod: "<gray>/fish rod <yellow>- Gerenciar vara"
+  enchant: "<gray>/fish enchant <yellow>- Encantamentos da vara"
+  class: "<gray>/fish class <yellow>- Classes de armadura"
+  invis: "<gray>/fish invis <yellow>- Toggle invisibilidade"
+
+admin:
+  reloaded: "<green>AlkaFish recarregado!"
+  tournament-started: "<green>Torneio iniciado!"
+  tournament-stopped: "<green>Torneio encerrado!"
+  xp-given: "<green>+{xp} XP para {player}"
+  help-header: "<dark_red><bold>🔧 AlkaFish Admin"
+  help-reload: "<gray>/alkafish reload <yellow>- Recarregar configs"
+  help-tournament: "<gray>/alkafish tournament start <tipo> [min] <yellow>- Iniciar torneio"
+  help-givexp: "<gray>/alkafish givexp <player> <amount> <yellow>- Dar XP"
+  help-npc: "<gray>/alkafish npc spawn|remove <yellow>- Gerenciar NPC de pesca"
+  help-setrod: "<gray>/alkafish setrod <player> <rod-id> <yellow>- Setar vara"
+  help-area: "<gray>/alkafish area set|spawn|lobby|saida|info <yellow>- Configurar área de pesca"
+
+errors:
+  no-permission: "{prefix}<red>Sem permissão!"
+  player-not-found: "{prefix}<red>Jogador não encontrado!"
+  invalid-fish: "{prefix}<red>Peixe inválido!"
+
+rod:
+  upgraded: "{prefix}<green>Vara upada para <aqua>Lvl.{level}<green>!"
+  repaired: "{prefix}<green>Vara reparada!"
+  broken: "{prefix}<red>Sua vara quebrou! O peixe era muito pesado."
+  no-rod: "{prefix}<red>Você não tem uma vara de pesca!"
+  need-upgrade: "{prefix}<red>Você precisa upar sua vara primeiro!"
+  cannot-carry: "{prefix}<red>Esta vara não suporta peixes tão pesados!"
+  enchant-upgraded: "{prefix}<green>Encantamento <aqua>{enchant} <green>upado para nível <aqua>{level}<green>!"
+  not-enough-nacar: "{prefix}<red>Você não tem nacar suficiente! Necessário: <aqua>{cost}"
+
+class:
+  equipped: "{prefix}<green>Classe <aqua>{class} <green>equipada!"
+  upgraded: "{prefix}<green>Você evoluiu para a classe <aqua>{class}<green>!"
+  need-previous: "{prefix}<red>Você precisa da classe anterior primeiro!"
+  not-enough-resources: "{prefix}<red>Recursos insuficientes para evoluir!"
+  already-equipped: "{prefix}<gray>Você já está usando esta classe."
+
+npc:
+  spawned: "{prefix}<green>NPC de pesca spawnado!"
+  removed: "{prefix}<red>NPC de pesca removido."
+
+area:
+  entered: "{prefix}<green>Você entrou na área de pesca!"
+  left: "{prefix}<gray>Você saiu da área de pesca."
+  teleported: "{prefix}<green>Teleportado para a <aqua>{area}<green>!"
+  not-configured: "{prefix}<red>A área de pesca ainda não foi configurada pelo staff."
+  not-in-area: "{prefix}<gray>Você não está na área de pesca."
+  invisibility-on: "{prefix}<gray>Invisibilidade <green>ativada<gray>."
+  invisibility-off: "{prefix}<gray>Invisibilidade <red>desativada<gray>."
+  pvp-disabled: "{prefix}<red>PvP está desativado na área de pesca!"
+  command-blocked: "{prefix}<red>Este comando não é permitido enquanto pesca!"
+
+mcmmo:
+  xp-gained: "{prefix}<green>+<aqua>{xp} <green>XP de pesca (mcMMO)"
+
+admin:
+  area-set: "{prefix}<green>Área de pesca definida! Use /alkafish area spawn para ajustar o spawn."
+  area-spawn-set: "{prefix}<green>Spawn da área definido na sua localização!"
+  area-lobby-set: "{prefix}<green>Lobby da área definido!"
+  area-exit-set: "{prefix}<green>Saída da área definida!"

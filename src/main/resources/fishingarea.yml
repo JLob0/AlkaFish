@@ -1,0 +1,15 @@
+# Área de pesca pública do AlkaFish
+# Defina com: /alkafish area set (usa a seleção do WorldEdit //pos1///pos2)
+# Depois ajuste: /alkafish area spawn | lobby | saida
+
+area:
+  id: pesca
+  display-name: "<aqua>Área de Pesca"
+  region:
+    world: "world"
+    x1: 0
+    y1: 0
+    z1: 0
+    x2: 0
+    y2: 0
+    z2: 0

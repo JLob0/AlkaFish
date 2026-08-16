@@ -1,0 +1,55 @@
+name: AlkaFish
+main: com.alkacode.fish.AlkaFishPlugin
+version: '${version}'
+api-version: 1.21
+folia-supported: true
+author: [ AlkaCode ]
+depend: [ AlkaCore, AlkaEconomy ]
+softdepend:
+  - PlaceholderAPI
+  - ItemsAdder
+  - AlkaShop
+  - AlkaDrop
+  - AlkaRankUp
+  - AlkaVips
+  - AlkaClans
+  - AlkaTime
+  - LuckPerms
+  - WorldGuard
+  - Citizens
+  - DecentHolograms
+  - mcMMO
+commands:
+  fish:
+    description: Comandos de pesca.
+    aliases: [ pesca, pescaria ]
+  sair:
+    description: Sair da área de pesca.
+  alkafish:
+    description: Comandos administrativos de pesca.
+    aliases: [ alkapesca ]
+permissions:
+  alkafish.use:
+    description: Usar o sistema de pesca.
+    default: true
+  alkafish.admin:
+    description: Acesso administrativo.
+    default: op
+  alkafish.tournament.start:
+    description: Iniciar torneios manualmente.
+    default: op
+  alkafish.rod.upgrade:
+    description: Upar a vara de pesca.
+    default: true
+  alkafish.rod.repair:
+    description: Reparar a vara de pesca.
+    default: true
+  alkafish.class.equip:
+    description: Equipar classes de armadura.
+    default: true
+  alkafish.class.upgrade:
+    description: Evoluir classes de armadura.
+    default: true
+  alkafish.autosell:
+    description: Usar auto-venda de peixes.
+    default: false
