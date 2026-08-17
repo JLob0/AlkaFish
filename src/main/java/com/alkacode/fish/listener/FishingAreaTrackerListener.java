@@ -53,12 +53,15 @@ public final class FishingAreaTrackerListener implements Listener {
         if (inside) {
             inArea.add(player.getUniqueId());
             plugin.getFishingAreaManager().markEnter(player);
+            // Só entra na área sem itens: limpa e dá o botão do menu.
+            plugin.getFishingAreaManager().saveAndClearInventory(player);
             giveRod(player);
         } else {
             inArea.remove(player.getUniqueId());
             plugin.getFishingAreaManager().markLeave(player);
             plugin.getFishingClassManager().clearClassEffects(player);
             plugin.getRodManager().removeRodItem(player);
+            plugin.getFishingAreaManager().restoreInventory(player);
         }
     }
 

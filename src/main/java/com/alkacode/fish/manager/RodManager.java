@@ -93,7 +93,6 @@ public final class RodManager {
     public boolean canUpgrade(Player player, FishingRod current) {
         FishingRod next = getNextRod(current);
         if (next == null) return false;
-        if (!player.hasPermission("alkafish.rod.upgrade")) return false;
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
         if (coins < next.getUpgradeCostCoins()) return false;
@@ -116,7 +115,6 @@ public final class RodManager {
     }
 
     public boolean canRepair(Player player, FishingRod rod) {
-        if (!player.hasPermission("alkafish.rod.repair")) return false;
         double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
         if (coins < rod.getRepairCostCoins()) return false;
         return plugin.getPlayerDataManager().getStats(player.getUniqueId()).getNacar() >= rod.getRepairCostNacar();

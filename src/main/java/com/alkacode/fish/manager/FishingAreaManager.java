@@ -127,7 +127,7 @@ public final class FishingAreaManager {
         save();
     }
 
-    /** Teleporta o jogador para a área e dá a vara. */
+    /** Teleporta o jogador para a área, limpa o inventário e dá a vara + botão do menu. */
     public void teleportTo(Player player) {
         if (area == null) {
             player.sendMessage(plugin.getMessages().parse("area.not-configured"));
@@ -135,6 +135,9 @@ public final class FishingAreaManager {
         }
         Location target = area.getSpawn() != null ? area.getSpawn() : area.getRegion().getCenter();
         player.teleport(target);
+
+        // Só entra na área sem itens: salva o inventário, limpa e dá vara + botão de menu.
+        saveAndClearInventory(player);
 
         // Dá a vara automaticamente ao chegar
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
@@ -148,7 +151,7 @@ public final class FishingAreaManager {
         }
     }
 
-    /** Teleporta para a saída configurada (ou spawn do mundo). */
+    /** Teleporta para a saída configurada (ou spawn do mundo) e restaura o inventário. */
     public void teleportExit(Player player) {
         Location exit = area != null && area.getExit() != null ? area.getExit() : null;
         if (exit == null) {
@@ -161,7 +164,51 @@ public final class FishingAreaManager {
         }
         plugin.getRodManager().removeRodItem(player);
         plugin.getFishingClassManager().clearClassEffects(player);
+        restoreInventory(player);
         player.sendMessage(plugin.getMessages().parse("area.left"));
+    }
+
+    // --- inventário da área (só pode entrar sem itens) ---
+    private final java.util.Map<java.util.UUID, org.bukkit.inventory.ItemStack[]> savedInventories = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Salva o inventário atual (se ainda não salvo), limpa tudo e dá o botão do menu. */
+    public void saveAndClearInventory(Player player) {
+        savedInventories.putIfAbsent(player.getUniqueId(), player.getInventory().getContents());
+        player.getInventory().clear();
+        giveMenuOpener(player);
+    }
+
+    /** Restaura o inventário salvo ao sair da área (se houver). */
+    public void restoreInventory(Player player) {
+        org.bukkit.inventory.ItemStack[] saved = savedInventories.remove(player.getUniqueId());
+        if (saved != null) {
+            player.getInventory().setContents(saved);
+        }
+    }
+
+    /** Item de abertura do menu, fica no meio da hotbar para o jogador abrir a pesca
+     * mesmo sem a vara (ex.: quando a vara quebra e some do inventário). */
+    public org.bukkit.inventory.ItemStack createMenuOpener() {
+        org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(org.bukkit.Material.PAPER);
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>🎣 Menu de Pesca"));
+        meta.lore(java.util.List.of(
+                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Clique com o botão direito para abrir")));
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "alkafish_menu"),
+                org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public void giveMenuOpener(Player player) {
+        player.getInventory().setItem(4, createMenuOpener());
+    }
+
+    /** true se o item é o botão de abrir o menu de pesca. */
+    public boolean isMenuOpener(org.bukkit.inventory.ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "alkafish_menu"));
     }
 
     /** true se a localização está dentro da REGIÃO PRINCIPAL de pesca (a água). */

@@ -102,14 +102,23 @@ public final class FishingListener implements Listener {
         processCatch(player, hookLoc);
     }
 
-    /** Shift + clique direito na vara abre o menu principal de pesca. */
+    /** Clique direito no botão do menu OU shift+clique direito na vara abre o menu de pesca. */
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         Player player = event.getPlayer();
-        if (!player.isSneaking()) return;
         ItemStack item = player.getInventory().getItemInMainHand();
+
+        // Botão do menu (meio da hotbar) - abre sem precisar de shift nem da vara.
+        if (plugin.getFishingAreaManager().isMenuOpener(item)) {
+            event.setCancelled(true);
+            new FishingAreaGui(plugin, player).open();
+            return;
+        }
+
+        // Shift + clique direito na vara abre o menu principal de pesca.
+        if (!player.isSneaking()) return;
         if (!plugin.getRodManager().isHoldingRod(player)) return;
         event.setCancelled(true);
         new FishingAreaGui(plugin, player).open();
