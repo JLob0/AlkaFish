@@ -164,20 +164,45 @@ public final class FishingAreaManager {
         player.sendMessage(plugin.getMessages().parse("area.left"));
     }
 
-    /** true se a localização está dentro da área (lobby ou região). */
+    /** true se a localização está dentro da REGIÃO PRINCIPAL de pesca (a água). */
     public boolean isInArea(Location loc) {
-        return area != null && area.containsLobby(loc);
+        return area != null && area.containsRegion(loc);
     }
 
     public boolean isInArea(Player player) {
         return isInArea(player.getLocation());
     }
 
-    /** true se o local está dentro da área E o bloco é água (para iniciar o AFK). */
+    /** true se o jogador está dentro da REGIÃO PRINCIPAL (a água). */
+    public boolean isPlayerInFishingArea(Player player) {
+        return area != null && area.containsRegion(player.getLocation());
+    }
+
+    /** true se o hook está dentro da REGIÃO PRINCIPAL (a água). */
+    public boolean isHookInFishingArea(org.bukkit.entity.FishHook hook) {
+        return area != null && area.containsRegion(hook.getLocation());
+    }
+
+    /** true se a localização está no lobby OU na região principal (dá/tira a vara no tracker). */
+    public boolean isInLobbyArea(Location loc) {
+        return area != null && area.containsLobby(loc);
+    }
+
+    public boolean isInLobbyArea(Player player) {
+        return isInLobbyArea(player.getLocation());
+    }
+
+    /** true se o local está dentro da área E o bloco (ou o bloco abaixo dele) é água
+     * (para iniciar o AFK). O FishHook flutua na superfície, então o bloco exato pode
+     * ser AIR mesmo com o hook na água. */
     public boolean isWaterInArea(Location loc) {
         if (!isInArea(loc)) return false;
         if (loc.getWorld() == null) return false;
-        var type = loc.getBlock().getType();
+        if (isWater(loc.getBlock().getType())) return true;
+        return isWater(loc.clone().subtract(0, 1, 0).getBlock().getType());
+    }
+
+    private static boolean isWater(org.bukkit.Material type) {
         return type == org.bukkit.Material.WATER || type == org.bukkit.Material.WATER_CAULDRON;
     }
 

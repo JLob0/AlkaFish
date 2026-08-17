@@ -54,15 +54,23 @@ public final class FishingListener implements Listener {
                 // Aguarda o hook assentar na água antes de iniciar o AFK
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     if (!player.isOnline()) return;
+                    if (!hook.isValid()) return;
                     Location current = hook.getLocation();
                     if (plugin.getFishingAreaManager().isWaterInArea(current)) {
-                        plugin.getFishingTask().start(player, current);
+                        plugin.getFishingTask().start(player, hook);
                     }
                 }, 10L);
             } else if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
                 if (plugin.getFishingTask().isFishing(player)) {
                     event.setCancelled(true);
                     if (event.getCaught() instanceof Item) event.getCaught().remove();
+                    // Puxou a linha manualmente -> encerra o AFK sem title de parada.
+                    plugin.getFishingTask().stopQuietly(player);
+                }
+            } else if (event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
+                // Recolheu a linha sem peixe -> também encerra o AFK sem title.
+                if (plugin.getFishingTask().isFishing(player)) {
+                    plugin.getFishingTask().stopQuietly(player);
                 }
             }
             return;
@@ -130,7 +138,12 @@ public final class FishingListener implements Listener {
         int depth = calculateDepth(hookLoc);
 
         List<Fish> candidates = plugin.getFishManager().getFishForConditions(biome, isNight, isRaining, depth);
-        if (candidates.isEmpty()) return null;
+        if (candidates.isEmpty()) {
+            plugin.getLogger().warning("rollFish sem candidatos: biome=" + biome
+                    + " night=" + isNight + " rain=" + isRaining + " depth=" + depth
+                    + " x=" + hookLoc.getBlockX() + " y=" + hookLoc.getBlockY() + " z=" + hookLoc.getBlockZ());
+            return null;
+        }
 
         PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         if (stats.isRodBroken()) {
@@ -169,9 +182,36 @@ public final class FishingListener implements Listener {
     }
 
     private int calculateDepth(Location loc) {
+        World world = loc.getWorld();
+        int x = loc.getBlockX();
+        int z = loc.getBlockZ();
         int y = loc.getBlockY();
-        int seaLevel = loc.getWorld().getSeaLevel();
-        return Math.max(0, seaLevel - y);
+
+        // 1. Sobe do hook até achar o primeiro bloco que não é água = acima da superfície.
+        int surfaceY = y;
+        for (int yy = y + 1; yy <= world.getMaxHeight(); yy++) {
+            if (!isWaterBlock(world.getBlockAt(x, yy, z).getType())) {
+                surfaceY = yy - 1;
+                break;
+            }
+        }
+
+        // 2. Desce contando os blocos de água até o fundo (coluna de água local).
+        int depth = 0;
+        for (int yy = surfaceY; yy >= world.getMinHeight(); yy--) {
+            if (isWaterBlock(world.getBlockAt(x, yy, z).getType())) {
+                depth++;
+            } else {
+                break;
+            }
+        }
+        return depth;
+    }
+
+    private boolean isWaterBlock(org.bukkit.Material type) {
+        return type == org.bukkit.Material.WATER || type == org.bukkit.Material.WATER_CAULDRON
+                || type == org.bukkit.Material.SEAGRASS || type == org.bukkit.Material.TALL_SEAGRASS
+                || type == org.bukkit.Material.KELP || type == org.bukkit.Material.KELP_PLANT;
     }
 
     /** Pipeline comum de captura: sacola no banco + stats + corais + XP + torneio. */

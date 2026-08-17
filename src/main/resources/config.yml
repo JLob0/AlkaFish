@@ -56,6 +56,9 @@ fishing-area:
   water-radius: 10.0
   verify-water: false
   cancel-fish-interact: false
+  # Distância máxima (blocos) entre o jogador e o hook antes de recolher a linha
+  # automaticamente. -1 desativa o limite (pode andar com a linha lançada).
+  max-fishing-distance: 50
   time-restrict:
     enabled: false
     gmt-offset: -3

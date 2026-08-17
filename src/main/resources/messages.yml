@@ -8,7 +8,9 @@ fish:
   bag-full: "{prefix}<red>Sua Fish Bag está cheia! Venda alguns peixes."
   legendary-broadcast: "<gold><bold>🏆 {player} pescou um {fish} LENDÁRIO de {length}cm!"
   started_title: "<green><bold>Pesca</bold>\n<yellow>Você começou a pescar"
+  started_subtitle: "<yellow>Mantenha-se na água para pescar automaticamente"
   stopped_title: "<green><bold>Pesca</bold>\n<red>Você parou de pescar"
+  stopped_subtitle: "<red>Linha recolhida"
   afk_count: "<aqua>🎣 Você pescou <yellow>{count} {name}</aqua>!"
 
 bag:
@@ -109,6 +111,7 @@ area:
   invisibility-off: "{prefix}<gray>Invisibilidade <red>desativada<gray>."
   pvp-disabled: "{prefix}<red>PvP está desativado na área de pesca!"
   command-blocked: "{prefix}<red>Este comando não é permitido enquanto pesca!"
+  inventory-full: "{prefix}<red>Seu inventário está cheio! A vara foi largada no chão."
 
 mcmmo:
   xp-gained: "{prefix}<green>+<aqua>{xp} <green>XP de pesca (mcMMO)"

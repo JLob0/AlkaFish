@@ -5,6 +5,7 @@ import com.alkacode.fish.model.FishingRod;
 import com.alkacode.fish.model.PlayerFishStats;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -16,6 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * Modo AFK de pesca: quando a linha toca a água dentro da área, um ciclo automático
  * pesca a cada `delay` da vara. Mostra contador de peixes na hotbar e no chat, e para
  * quando a vara (se quebrável) quebra.
+ *
+ * <p>O AFK é encerrado automaticamente (recolhendo a linha) se:
+ * <ul>
+ *   <li>o jogador sair da região principal de pesca;</li>
+ *   <li>o hook sair da região principal ou da água;</li>
+ *   <li>o jogador se afastar mais de {@code max-fishing-distance} blocos do hook.</li>
+ * </ul>
+ * Enquanto o jogador andar DENTRO da região, a linha não recolhe.
  */
 public final class FishingTask {
 
@@ -27,7 +36,7 @@ public final class FishingTask {
     }
 
     /** Inicia o modo AFK para o jogador (no-op se já estiver pescando). */
-    public void start(Player player, Location hookLoc) {
+    public void start(Player player, FishHook hook) {
         UUID uuid = player.getUniqueId();
         if (sessions.containsKey(uuid)) return;
 
@@ -42,27 +51,41 @@ public final class FishingTask {
         final FishingRod finalRod = rod;
 
         long delayTicks = Math.max(20L, rod.getDelaySeconds() * 20L);
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> cycle(player, finalRod, hookLoc), delayTicks, delayTicks);
-        sessions.put(uuid, new Session(task, finalRod, hookLoc));
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> cycle(player, finalRod, hook), delayTicks, delayTicks);
+        sessions.put(uuid, new Session(task, finalRod, hook));
 
         plugin.getFishingAreaManager().markEnter(player);
         showTitle(player, true);
     }
 
-    private void cycle(Player player, FishingRod rod, Location hookLoc) {
+    private void cycle(Player player, FishingRod rod, FishHook hook) {
         UUID uuid = player.getUniqueId();
-        if (!player.isOnline() || !plugin.getFishingAreaManager().isInArea(player.getLocation())) {
-            stop(player);
+
+        // Recolhe automaticamente se o jogador saiu da região, o hook saiu da região/água,
+        // ou o jogador se afastou além do limite configurado.
+        if (!player.isOnline()
+                || !plugin.getFishingAreaManager().isPlayerInFishingArea(player)
+                || !hook.isValid()
+                || !plugin.getFishingAreaManager().isHookInFishingArea(hook)
+                || !plugin.getFishingAreaManager().isWaterInArea(hook.getLocation())) {
+            retractAndStop(player, hook);
             return;
         }
+        double maxDist = plugin.getConfig().getDouble("fishing-area.max-fishing-distance", 50.0);
+        if (maxDist >= 0 && player.getLocation().distance(hook.getLocation()) > maxDist) {
+            retractAndStop(player, hook);
+            return;
+        }
+
         var stats = plugin.getPlayerDataManager().getStats(uuid);
         if (stats.isRodBroken() || !plugin.getRodManager().isHoldingRod(player)) {
-            stop(player);
+            retractAndStop(player, hook);
             return;
         }
 
         Session session = sessions.get(uuid);
         int countBefore = session != null ? session.fishCaught() : 0;
+        Location hookLoc = hook.getLocation();
         // hookLoc, NUNCA player.getLocation() - a profundidade (calculateDepth) usa esse Y
         // pra filtrar peixe por min-depth, e todo peixe do fish.yml padrao exige min-depth
         // >= 1. A posicao do JOGADOR (em pe no deck, acima da agua) sempre da profundidade
@@ -75,7 +98,7 @@ public final class FishingTask {
 
         // Mensagem na hotbar + chat com contador
         String name = "peixe" + (newCount == 1 ? "" : "s");
-        player.sendActionBar(plugin.getMessages().parse("fishing.afk_count",
+        player.sendActionBar(plugin.getMessages().parse("fish.afk_count",
                 java.util.Map.of("count", String.valueOf(newCount), "name", name)));
 
         // Checagem de quebra (só se a vara for quebrável)
@@ -90,13 +113,27 @@ public final class FishingTask {
         }
     }
 
-    /** Para o modo AFK. */
+    /** Encerra o AFK recolhendo a linha (auto, sem clique do jogador) e mostra o title de parada. */
+    private void retractAndStop(Player player, FishHook hook) {
+        if (hook != null && hook.isValid()) hook.remove();
+        stop(player);
+    }
+
+    /** Para o modo AFK mostrando o title de parada. */
     public void stop(Player player) {
         Session session = sessions.remove(player.getUniqueId());
         if (session == null) return;
         session.task().cancel();
         plugin.getFishingAreaManager().markLeave(player);
         showTitle(player, false);
+    }
+
+    /** Para o modo AFK SEM mostrar title (usado quando o jogador recolhe manualmente). */
+    public void stopQuietly(Player player) {
+        Session session = sessions.remove(player.getUniqueId());
+        if (session == null) return;
+        session.task().cancel();
+        plugin.getFishingAreaManager().markLeave(player);
     }
 
     public boolean isFishing(Player player) {
@@ -112,19 +149,31 @@ public final class FishingTask {
     }
 
     private void showTitle(Player player, boolean started) {
-        var msg = plugin.getMessages().parse(started ? "fishing.started_title" : "fishing.stopped_title");
+        var title = plugin.getMessages().parse(started ? "fish.started_title" : "fish.stopped_title");
+        var subtitle = parseOrEmpty(started ? "fish.started_subtitle" : "fish.stopped_subtitle");
         player.showTitle(net.kyori.adventure.title.Title.title(
-                msg, net.kyori.adventure.text.Component.empty(),
+                title, subtitle,
                 net.kyori.adventure.title.Title.Times.times(
                         java.time.Duration.ofMillis(300), java.time.Duration.ofMillis(1500), java.time.Duration.ofMillis(300))));
     }
 
-    private record Session(BukkitTask task, FishingRod rod, Location hookLoc, int fishCaught) {
-        Session(BukkitTask task, FishingRod rod, Location hookLoc) {
-            this(task, rod, hookLoc, 0);
+    /** Resolve a mensagem; se a key não existir no messages.yml (parse devolve a própria
+     * key), retorna um componente vazio em vez de mostrar texto cru. */
+    private net.kyori.adventure.text.Component parseOrEmpty(String key) {
+        var msg = plugin.getMessages().parse(key);
+        if (msg != null) {
+            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(msg);
+            if (plain.equals(key)) return net.kyori.adventure.text.Component.empty();
+        }
+        return msg;
+    }
+
+    private record Session(BukkitTask task, FishingRod rod, FishHook hook, int fishCaught) {
+        Session(BukkitTask task, FishingRod rod, FishHook hook) {
+            this(task, rod, hook, 0);
         }
         Session withFishCaught(int n) {
-            return new Session(task, rod, hookLoc, n);
+            return new Session(task, rod, hook, n);
         }
     }
 }

@@ -29,8 +29,14 @@ public class FishingArea {
     public Location getExit() { return exit; }
     public void setExit(Location exit) { this.exit = exit; }
 
-    /** Único check de "está na área" - sempre ignora Y (ver FishingRegion#containsIgnoreY),
-     * cai pra região se não houver lobby configurado. */
+    /** Check da REGIÃO PRINCIPAL de pesca (a água) - sempre ignora Y
+     * (ver FishingRegion#containsIgnoreY). Usado pela lógica de pesca/AFK. */
+    public boolean containsRegion(Location location) {
+        return region.containsIgnoreY(location);
+    }
+
+    /** Check do lobby (dá/tira a vara no tracker). Se não houver lobby
+     * configurado, cai pra região principal. */
     public boolean containsLobby(Location location) {
         return lobbyRegion != null ? lobbyRegion.containsIgnoreY(location) : region.containsIgnoreY(location);
     }
