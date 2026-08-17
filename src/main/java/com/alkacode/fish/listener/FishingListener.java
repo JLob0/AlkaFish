@@ -64,12 +64,18 @@ public final class FishingListener implements Listener {
                 if (plugin.getFishingTask().isFishing(player)) {
                     event.setCancelled(true);
                     if (event.getCaught() instanceof Item) event.getCaught().remove();
-                    // Puxou a linha manualmente -> encerra o AFK sem title de parada.
+                    // Puxou a linha manualmente -> avisa e encerra o AFK sem title de parada.
+                    int count = plugin.getFishingAreaManager().getFishCount(player);
+                    player.sendMessage(plugin.getMessages().parse("fish.stopped",
+                            java.util.Map.of("count", String.valueOf(count))));
                     plugin.getFishingTask().stopQuietly(player);
                 }
             } else if (event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
-                // Recolheu a linha sem peixe -> também encerra o AFK sem title.
+                // Recolheu a linha sem peixe -> também avisa e encerra o AFK.
                 if (plugin.getFishingTask().isFishing(player)) {
+                    int count = plugin.getFishingAreaManager().getFishCount(player);
+                    player.sendMessage(plugin.getMessages().parse("fish.stopped",
+                            java.util.Map.of("count", String.valueOf(count))));
                     plugin.getFishingTask().stopQuietly(player);
                 }
             }
@@ -230,6 +236,18 @@ public final class FishingListener implements Listener {
             }
             player.sendMessage(plugin.getMessages().parse("rod.cannot-carry"));
             return;
+        }
+
+        // Checagem de quebra por uso (breakChance) - pesca fora da área (vanilla).
+        // No AFK essa checagem é feita no FishingTask.cycle (com recolhimento da linha).
+        if (!plugin.getFishingTask().isFishing(player) && rod != null && !rod.isUnbreakable()) {
+            double chance = rod.getBreakChance();
+            if (chance > 0 && Math.random() * 100 < chance) {
+                stats.setRodBroken(true);
+                player.sendMessage(plugin.getMessages().parse("rod.broke_afk"));
+                plugin.getPlayerDataManager().save(player.getUniqueId());
+                return; // Peixe escapa, vara quebrou
+            }
         }
 
         // Peixe vai direto para a sacola no banco (nunca para o inventário)

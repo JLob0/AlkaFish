@@ -11,6 +11,7 @@ fish:
   started_subtitle: "<yellow>Mantenha-se na água para pescar automaticamente"
   stopped_title: "<green><bold>Pesca</bold>\n<red>Você parou de pescar"
   stopped_subtitle: "<red>Linha recolhida"
+  stopped: "{prefix}<gray>Linha recolhida! Você pescou <yellow>{count} <gray>peixe(s) nesta sessão."
   afk_count: "<aqua>🎣 Você pescou <yellow>{count} {name}</aqua>!"
 
 bag:

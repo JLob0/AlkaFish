@@ -113,7 +113,6 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         saveResource("classes.yml", false);
         saveResource("npc.yml", false);
         saveResource("rewards.yml", false);
-        saveResource("fishingarea.yml", false);
 
         this.messages = new FishMessages(this);
 

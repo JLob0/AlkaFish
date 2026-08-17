@@ -107,8 +107,9 @@ public final class FishingTask {
             if (chance > 0 && Math.random() * 100 < chance) {
                 stats.setRodBroken(true);
                 plugin.getPlayerDataManager().save(uuid);
-                stop(player);
                 player.sendMessage(plugin.getMessages().parse("rod.broke_afk"));
+                // Remove o hook da água antes de parar (senão a linha fica presa).
+                retractAndStop(player, hook);
             }
         }
     }
