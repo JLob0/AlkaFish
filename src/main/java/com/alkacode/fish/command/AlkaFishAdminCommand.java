@@ -48,6 +48,9 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             case "npc" -> handleNpc(sender, args);
             case "setrod" -> handleSetRod(sender, args);
             case "area" -> handleArea(sender, args);
+            case "givebooster" -> handleGiveBooster(sender, args);
+            case "givecorals" -> handleGiveCorals(sender, args, true);
+            case "removecorals" -> handleGiveCorals(sender, args, false);
             default -> sendAdminHelp(sender);
         }
         return true;
@@ -63,18 +66,28 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             return;
         }
         switch (args[1].toLowerCase()) {
+            case "pos1" -> {
+                plugin.getFishingAreaManager().setPos1(player.getLocation());
+                sender.sendMessage("<green>Posição 1 definida: " + player.getLocation().getBlockX()
+                        + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
+            }
+            case "pos2" -> {
+                plugin.getFishingAreaManager().setPos2(player.getLocation());
+                sender.sendMessage("<green>Posição 2 definida: " + player.getLocation().getBlockX()
+                        + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
+            }
             case "set" -> {
-                // Define a região da área usando a seleção do WorldEdit (//pos1///pos2)
-                if (plugin.getWorldEditHook() == null) {
-                    sender.sendMessage("<red>WorldEdit/FAWE não detectado!");
+                // Usa pos1/pos2 do plugin se disponível; senão, tenta a seleção do WorldEdit.
+                FishingRegion region = plugin.getFishingAreaManager().getSelectionRegion();
+                if (region == null && plugin.getWorldEditHook() != null) {
+                    java.util.Optional<FishingRegion> sel = plugin.getWorldEditHook().getSelection(player);
+                    if (sel.isPresent()) region = sel.get();
+                }
+                if (region == null) {
+                    sender.sendMessage("<red>Use /alkafish area pos1 e /alkafish area pos2 (ou a //wand do WorldEdit) para marcar a área!");
                     return;
                 }
-                java.util.Optional<FishingRegion> sel = plugin.getWorldEditHook().getSelection(player);
-                if (sel.isEmpty()) {
-                    sender.sendMessage("<red>Use a //wand do WorldEdit e marque //pos1 e //pos2!");
-                    return;
-                }
-                plugin.getFishingAreaManager().setArea("pesca", "<aqua>Área de Pesca", sel.get());
+                plugin.getFishingAreaManager().setArea("pesca", "<aqua>Área de Pesca", region);
                 sender.sendMessage(plugin.getMessages().parse("admin.area-set"));
             }
             case "spawn" -> {
@@ -82,16 +95,16 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 sender.sendMessage(plugin.getMessages().parse("admin.area-spawn-set"));
             }
             case "lobby" -> {
-                if (plugin.getWorldEditHook() == null) {
-                    sender.sendMessage("<red>WorldEdit/FAWE não detectado!");
+                FishingRegion lobbyRegion = plugin.getFishingAreaManager().getSelectionRegion();
+                if (lobbyRegion == null && plugin.getWorldEditHook() != null) {
+                    java.util.Optional<FishingRegion> sel = plugin.getWorldEditHook().getSelection(player);
+                    if (sel.isPresent()) lobbyRegion = sel.get();
+                }
+                if (lobbyRegion == null) {
+                    sender.sendMessage("<red>Use /alkafish area pos1 e /alkafish area pos2 (ou a //wand do WorldEdit) para marcar o lobby!");
                     return;
                 }
-                java.util.Optional<FishingRegion> sel = plugin.getWorldEditHook().getSelection(player);
-                if (sel.isEmpty()) {
-                    sender.sendMessage("<red>Use a //wand do WorldEdit e marque //pos1 e //pos2!");
-                    return;
-                }
-                plugin.getFishingAreaManager().setLobby(sel.get());
+                plugin.getFishingAreaManager().setLobby(lobbyRegion);
                 sender.sendMessage(plugin.getMessages().parse("admin.area-lobby-set"));
             }
             case "saida" -> {
@@ -110,7 +123,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 sender.sendMessage("<gray>Região: <green>" + r.getWorld() + " <gray>(" + r.getX1() + "," + r.getY1() + "," + r.getZ1() + ") -> (" + r.getX2() + "," + r.getY2() + "," + r.getZ2() + ")");
                 sender.sendMessage("<gray>Spawn: <green>" + (area.get().getSpawn() != null ? "definido" : "centro da região"));
             }
-            default -> sender.sendMessage("<red>Uso: /alkafish area set|spawn|lobby|saida|info");
+            default -> sender.sendMessage("<red>Uso: /alkafish area pos1|pos2|set|spawn|lobby|saida|info");
         }
     }
 
@@ -202,6 +215,64 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
         plugin.getPlayerDataManager().save(target.getUniqueId());
         sender.sendMessage(plugin.getMessages().parse("admin.xp-given",
                 java.util.Map.of("player", target.getName(), "xp", String.format("%.1f", xp))));
+    }
+
+    private void handleGiveBooster(CommandSender sender, String[] args) {
+        if (args.length < 5) {
+            sender.sendMessage("<red>Use: /alkafish givebooster <player> <tipo> <multiplier> <duracao>");
+            sender.sendMessage("<gray>Tipos: FISH_CHANCE, CORAL_MULTIPLIER, SELL_BONUS");
+            return;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            return;
+        }
+        String type = args[2].toUpperCase();
+        double multiplier;
+        int duration;
+        try {
+            multiplier = Double.parseDouble(args[3]);
+            duration = Integer.parseInt(args[4]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage("<red>Multiplicador/duração inválidos!");
+            return;
+        }
+        if (!java.util.Set.of("FISH_CHANCE", "CORAL_MULTIPLIER", "SELL_BONUS").contains(type)) {
+            sender.sendMessage("<red>Tipo inválido! Use FISH_CHANCE, CORAL_MULTIPLIER ou SELL_BONUS.");
+            return;
+        }
+        plugin.getBoosterService().activate(target, type, multiplier, duration);
+        sender.sendMessage("<green>Booster aplicado em " + target.getName() + "!");
+    }
+
+    private void handleGiveCorals(CommandSender sender, String[] args, boolean give) {
+        if (args.length < 3) {
+            sender.sendMessage("<red>Use: /alkafish " + (give ? "givecorals" : "removecorals") + " <player> <amount>");
+            return;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            return;
+        }
+        double amount;
+        try {
+            amount = Double.parseDouble(args[2]);
+        } catch (NumberFormatException e) {
+            sender.sendMessage("<red>Quantia inválida!");
+            return;
+        }
+        var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
+        double current = stats.getNacar();
+        if (!give && amount > current) {
+            sender.sendMessage("<red>O jogador não tem corais suficientes!");
+            return;
+        }
+        stats.setNacar(give ? current + amount : current - amount);
+        plugin.getPlayerDataManager().save(target.getUniqueId());
+        sender.sendMessage((give ? "<green>Dados " : "<green>Removidos ") + String.format("%.0f", amount)
+                + " nacar para " + target.getName() + "!");
     }
 
     private void sendAdminHelp(CommandSender sender) {

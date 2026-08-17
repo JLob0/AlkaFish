@@ -22,10 +22,33 @@ public final class FishingAreaManager {
 
     private final AlkaFishPlugin plugin;
     private FishingArea area;
+    private Location pos1;
+    private Location pos2;
 
     public FishingAreaManager(AlkaFishPlugin plugin) {
         this.plugin = plugin;
         load();
+    }
+
+    // --- seleção pos1/pos2 (sem depender do WorldEdit) ---
+    public void setPos1(Location loc) {
+        this.pos1 = loc.clone();
+    }
+
+    public void setPos2(Location loc) {
+        this.pos2 = loc.clone();
+    }
+
+    public boolean hasSelection() {
+        return pos1 != null && pos2 != null && pos1.getWorld().equals(pos2.getWorld());
+    }
+
+    /** Monta uma FishingRegion a partir do pos1/pos2 selecionado. */
+    public FishingRegion getSelectionRegion() {
+        if (!hasSelection()) return null;
+        return new FishingRegion(pos1.getWorld().getName(),
+                pos1.getBlockX(), pos1.getBlockY(), pos1.getBlockZ(),
+                pos2.getBlockX(), pos2.getBlockY(), pos2.getBlockZ());
     }
 
     public void load() {
@@ -148,6 +171,14 @@ public final class FishingAreaManager {
 
     public boolean isInArea(Player player) {
         return isInArea(player.getLocation());
+    }
+
+    /** true se o local está dentro da área E o bloco é água (para iniciar o AFK). */
+    public boolean isWaterInArea(Location loc) {
+        if (!isInArea(loc)) return false;
+        if (loc.getWorld() == null) return false;
+        var type = loc.getBlock().getType();
+        return type == org.bukkit.Material.WATER || type == org.bukkit.Material.WATER_CAULDRON;
     }
 
     // --- sessão de pesca (contadores/tempo) ---

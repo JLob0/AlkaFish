@@ -49,12 +49,33 @@ public final class AlkaFishExpansion extends PlaceholderExpansion {
             }
             case "fished_count" -> String.valueOf(plugin.getFishingAreaManager().getFishCount(player));
             case "fishing_time" -> plugin.getFishingAreaManager().getFishingTime(player);
-            case "status" -> plugin.getFishingAreaManager().isInArea(player) ? "<green>Pescando" : "<gray>Inativo";
+            case "status" -> plugin.getFishingTask().isFishing(player)
+                    ? "<green>Pescando... " + plugin.getFishingAreaManager().getFishingTime(player)
+                    : "<gray>Inativo";
+            case "in_area" -> plugin.getFishingAreaManager().isInArea(player) ? "Sim" : "Não";
             case "mcmmo_level" -> {
                 if (plugin.getMcMMOHook() != null && plugin.getMcMMOHook().isAvailable()) {
                     yield String.valueOf(plugin.getMcMMOHook().getFishingLevel(player));
                 }
                 yield "0";
+            }
+            case "booster_active" -> plugin.getBoosterService().isActive(player) ? "Sim" : "Não";
+            case "booster_type" -> {
+                var b = plugin.getBoosterService().getBooster(player);
+                yield b != null ? b.getType() : "";
+            }
+            case "booster_time" -> {
+                var b = plugin.getBoosterService().getBooster(player);
+                yield b != null ? String.valueOf(b.getRemainingSeconds()) : "0";
+            }
+            case "booster_multiplier" -> {
+                var b = plugin.getBoosterService().getBooster(player);
+                yield b != null ? String.format("%.0f", b.getMultiplier()) : "0";
+            }
+            case "total_fished" -> String.valueOf(stats.getTotalCaught());
+            case "rod_weight" -> {
+                var rod = plugin.getRodManager().getRodById(stats.getRodId());
+                yield rod != null ? String.format("%.0f", rod.getSupportedWeight()) : "0";
             }
             default -> null;
         };

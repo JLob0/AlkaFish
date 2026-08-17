@@ -29,16 +29,12 @@ public class FishingRegion {
         return new Location(w, x, y, z);
     }
 
-    public boolean contains(Location location) {
-        World w = location.getWorld();
-        if (w == null || !w.getName().equals(world)) return false;
-        int x = location.getBlockX();
-        int y = location.getBlockY();
-        int z = location.getBlockZ();
-        return x >= x1 && x <= x2 && y >= y1 && y <= y2 && z >= z1 && z <= z2;
-    }
-
-    /** Ignora Y (plataforma de entrada em altura diferente conta como "na área"). */
+    /** Ignora Y de propósito - toda a área de pesca (não só o lobby) usa isso. Diferente
+     * do AlkaMines (onde a altura importa pra mineração de verdade), a pesca só precisa
+     * saber se o jogador está no footprint X/Z certo; o acesso já é 100% controlado por
+     * /pescaria ou NPC, nunca andando até lá, então uma seleção de altura curta na hora
+     * de configurar a área nunca vira "erro de área" por o jogador estar um pouco acima
+     * ou abaixo do Y selecionado. */
     public boolean containsIgnoreY(Location location) {
         World w = location.getWorld();
         if (w == null || !w.getName().equals(world)) return false;

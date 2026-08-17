@@ -29,12 +29,8 @@ public class FishingArea {
     public Location getExit() { return exit; }
     public void setExit(Location exit) { this.exit = exit; }
 
-    /** Região exata (X/Y/Z) - área de pesca propriamente dita. */
-    public boolean contains(Location location) {
-        return region.contains(location);
-    }
-
-    /** Área como um todo (lobby/entrada) - cai pra região se não houver lobby. Ignora Y. */
+    /** Único check de "está na área" - sempre ignora Y (ver FishingRegion#containsIgnoreY),
+     * cai pra região se não houver lobby configurado. */
     public boolean containsLobby(Location location) {
         return lobbyRegion != null ? lobbyRegion.containsIgnoreY(location) : region.containsIgnoreY(location);
     }

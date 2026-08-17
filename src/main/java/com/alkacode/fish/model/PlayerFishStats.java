@@ -20,8 +20,8 @@ public class PlayerFishStats {
     private double currentBagWeight;
 
     // === NOVOS CAMPOS v1.1.0 ===
-    private String rodId = "wooden";
-    private int rodLevel = 1;
+    private String rodId = "quebravel";
+    private int rodLevel = 0;
     private boolean rodBroken = false;
     private final Map<String, Integer> rodEnchantLevels = new HashMap<>();
     private String activeClassId = "";

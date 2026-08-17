@@ -22,6 +22,8 @@ public class FishingRod {
     private final double supportedWeight;
     private final int delaySeconds;
     private final boolean breakOnHeavy;
+    private final boolean unbreakable;
+    private final double breakChance;
     private final boolean allowAutoSell;
     private final double repairCostCoins;
     private final double repairCostNacar;
@@ -33,7 +35,8 @@ public class FishingRod {
     private final List<String> itemLore;
 
     public FishingRod(String id, int level, String displayName, Material material, int customModelData,
-                      double supportedWeight, int delaySeconds, boolean breakOnHeavy, boolean allowAutoSell,
+                      double supportedWeight, int delaySeconds, boolean breakOnHeavy, boolean unbreakable,
+                      double breakChance, boolean allowAutoSell,
                       double repairCostCoins, double repairCostNacar, double upgradeCostCoins, double upgradeCostNacar,
                       int enchantBaseCost, List<RodReward> rewards, String itemName, List<String> itemLore) {
         this.id = id;
@@ -44,6 +47,8 @@ public class FishingRod {
         this.supportedWeight = supportedWeight;
         this.delaySeconds = delaySeconds;
         this.breakOnHeavy = breakOnHeavy;
+        this.unbreakable = unbreakable;
+        this.breakChance = breakChance;
         this.allowAutoSell = allowAutoSell;
         this.repairCostCoins = repairCostCoins;
         this.repairCostNacar = repairCostNacar;
@@ -63,6 +68,8 @@ public class FishingRod {
     public double getSupportedWeight() { return supportedWeight; }
     public int getDelaySeconds() { return delaySeconds; }
     public boolean isBreakOnHeavy() { return breakOnHeavy; }
+    public boolean isUnbreakable() { return unbreakable; }
+    public double getBreakChance() { return breakChance; }
     public boolean isAllowAutoSell() { return allowAutoSell; }
     public double getRepairCostCoins() { return repairCostCoins; }
     public double getRepairCostNacar() { return repairCostNacar; }

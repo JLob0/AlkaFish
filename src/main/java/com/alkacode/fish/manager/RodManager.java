@@ -56,6 +56,8 @@ public final class RodManager {
                         section.getDouble("supported-weight", 5.0),
                         section.getInt("delay-seconds", 8),
                         section.getBoolean("break-on-heavy", true),
+                        section.getBoolean("unbreakable", false),
+                        section.getDouble("break-chance", 0.0),
                         section.getBoolean("allow-auto-sell", false),
                         section.getDouble("repair-cost.coins", 0),
                         section.getDouble("repair-cost.nacar", 0),
@@ -139,6 +141,11 @@ public final class RodManager {
         ItemStack item = rod.toItemStack(plugin, stats.getRodEnchantLevels(), stats.getNacar(), stats.getNacarNext());
         int slot = getRodSlot();
         player.getInventory().setItem(slot, item);
+        // Sem isso a vara ficava SO na hotbar, nao necessariamente na mao - se o jogador
+        // nao estivesse ja no slot certo, PlayerFishEvent nunca disparava (vanilla exige
+        // segurar um item de vara de verdade) e isHoldingRod() no ciclo AFK falhava,
+        // derrubando a sessao no primeiro tick.
+        player.getInventory().setHeldItemSlot(slot);
     }
 
     /** Remove a vara do slot configurado (rod-slot) se ela for do AlkaFish. */
@@ -155,5 +162,13 @@ public final class RodManager {
     private int getRodSlot() {
         int slot = plugin.getConfig().getInt("rods.rod-slot", 0);
         return (slot < 0 || slot >= 36) ? 0 : slot;
+    }
+
+    /** true se o jogador está segurando uma vara de pesca do AlkaFish na mão. */
+    public boolean isHoldingRod(Player player) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "alkafish_rod_id"));
     }
 }

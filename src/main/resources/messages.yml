@@ -7,6 +7,9 @@ fish:
   escaped: "{prefix}<red>O peixe escapou..."
   bag-full: "{prefix}<red>Sua Fish Bag está cheia! Venda alguns peixes."
   legendary-broadcast: "<gold><bold>🏆 {player} pescou um {fish} LENDÁRIO de {length}cm!"
+  started_title: "<green><bold>Pesca</bold>\n<yellow>Você começou a pescar"
+  stopped_title: "<green><bold>Pesca</bold>\n<red>Você parou de pescar"
+  afk_count: "<aqua>🎣 Você pescou <yellow>{count} {name}</aqua>!"
 
 bag:
   opened: "{prefix}<gray>Abrindo Fish Bag..."
@@ -17,6 +20,15 @@ sell:
   success: "{prefix}<green>Vendido <yellow>{count} <green>peixes por <yellow>${amount}<green>!"
   cancelled: "{prefix}<gray>Venda cancelada."
   autosell-toggle: "{prefix}<gray>Auto-venda configurada no AlkaShop."
+
+bag:
+  sold: "{prefix}<green>Você vendeu <yellow>x{amount} {fish}</yellow> por <yellow>${price} coins</yellow>."
+  sold_all: "{prefix}<green>Você vendeu todos os seus peixes por <yellow>${price} coins</yellow>."
+  empty: "{prefix}<red>Sua sacola está vazia."
+
+booster:
+  activated: "{prefix}<green>Booster ativado! <yellow>{type}</yellow> +{multiplier}% por {duration}s."
+  expired: "{prefix}<red>Seu booster expirou."
 
 tournament:
   joined: "{prefix}<green>Você entrou no torneio!"
@@ -69,6 +81,7 @@ rod:
   upgraded: "{prefix}<green>Vara upada para <aqua>Lvl.{level}<green>!"
   repaired: "{prefix}<green>Vara reparada!"
   broken: "{prefix}<red>Sua vara quebrou! O peixe era muito pesado."
+  broke_afk: "{prefix}<red><bold>Sua vara quebrou!</bold> <gray>Você parou de pescar."
   no-rod: "{prefix}<red>Você não tem uma vara de pesca!"
   need-upgrade: "{prefix}<red>Você precisa upar sua vara primeiro!"
   cannot-carry: "{prefix}<red>Esta vara não suporta peixes tão pesados!"

@@ -2,32 +2,40 @@ package com.alkacode.fish.listener;
 
 import com.alkacode.fish.AlkaFishPlugin;
 import com.alkacode.fish.database.entity.FishCaughtEntity;
+import com.alkacode.fish.gui.FishingAreaGui;
 import com.alkacode.fish.model.Bait;
 import com.alkacode.fish.model.Fish;
 import com.alkacode.fish.model.FishRarity;
 import com.alkacode.fish.model.PlayerFishStats;
 import com.alkacode.fish.util.WeightUtil;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Núcleo do mini-game: roll do peixe, mini-game de tensão e captura. */
+/**
+ * Núcleo de pesca:
+ * - Dentro de uma área setada: a animação vanilla acontece normalmente e, quando a
+ *   linha assenta na água dentro da área, inicia o modo AFK (FishingTask).
+ * - Fora da área (global): pesca vanilla interceptada, processa o peixe na sacola.
+ * - Shift + clique direito na vara abre o menu principal de pesca.
+ */
 public final class FishingListener implements Listener {
 
     private final AlkaFishPlugin plugin;
-    private final MiniMessage mm = MiniMessage.miniMessage();
 
     public FishingListener(AlkaFishPlugin plugin) {
         this.plugin = plugin;
@@ -35,44 +43,75 @@ public final class FishingListener implements Listener {
 
     @EventHandler
     public void onPlayerFish(PlayerFishEvent event) {
-        if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-
         Player player = event.getPlayer();
-        Location hookLoc = event.getHook().getLocation();
+        FishHook hook = event.getHook();
+        Location hookLoc = hook.getLocation();
 
-        if (event.getCaught() instanceof Item) {
-            event.getCaught().remove();
-        }
-        event.setCancelled(true);
-
-        // Bait activation (right-click water handled elsewhere; check active zone)
-        if (plugin.getConfig().getBoolean("tension-game.enabled", true)) {
-            startTensionGame(player, hookLoc);
-        } else {
-            processCatch(player, hookLoc);
-        }
-    }
-
-    private void startTensionGame(Player player, Location hookLoc) {
-        Fish fish = rollFish(player, hookLoc);
-        if (fish == null) return;
-
-        double length = WeightUtil.rollLength(fish);
-        double weight = WeightUtil.rollWeight(fish, length);
-        PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-
-        if (!stats.canAddToBag(weight)) {
-            player.sendMessage(plugin.getMessages().parse("fish.bag-full"));
+        // Dentro da área: deixa a animação vanilla acontecer (FISHING NÃO é cancelado).
+        // Quando a linha assenta na água dentro da área, inicia o modo AFK.
+        if (plugin.getFishingAreaManager().isInArea(hookLoc)) {
+            if (event.getState() == PlayerFishEvent.State.FISHING) {
+                // Aguarda o hook assentar na água antes de iniciar o AFK
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (!player.isOnline()) return;
+                    Location current = hook.getLocation();
+                    if (plugin.getFishingAreaManager().isWaterInArea(current)) {
+                        plugin.getFishingTask().start(player, current);
+                    }
+                }, 10L);
+            } else if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
+                if (plugin.getFishingTask().isFishing(player)) {
+                    event.setCancelled(true);
+                    if (event.getCaught() instanceof Item) event.getCaught().remove();
+                }
+            }
             return;
         }
 
-        plugin.getTensionGameManager().startGame(player, fish, length, weight, hookLoc, (success) -> {
-            if (success) {
-                handleSuccessfulCatch(player, fish, length, weight, hookLoc, stats);
-            } else {
-                player.sendMessage(plugin.getMessages().parse("fish.escaped"));
-            }
-        });
+        // Fora da área -> pesca normal
+        if (event.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
+        if (event.getCaught() instanceof Item) event.getCaught().remove();
+        event.setCancelled(true);
+        processCatch(player, hookLoc);
+    }
+
+    /** Shift + clique direito na vara abre o menu principal de pesca. */
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        Player player = event.getPlayer();
+        if (!player.isSneaking()) return;
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (!plugin.getRodManager().isHoldingRod(player)) return;
+        event.setCancelled(true);
+        new FishingAreaGui(plugin, player).open();
+    }
+
+    /** Ativa uma isca quando o jogador joga a linha na água. */
+    @EventHandler
+    public void onBaitThrow(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.FISHING) return;
+        Player player = event.getPlayer();
+        ItemStack bait = player.getInventory().getItemInMainHand();
+        if (!plugin.getBaitManager().isBaitItem(bait)) return;
+        String baitId = plugin.getBaitManager().getBaitIdFromItem(bait);
+        Bait baitDef = plugin.getBaitManager().getBaitById(baitId);
+        if (baitDef == null) return;
+        plugin.getBaitManager().activateBait(player, baitDef, event.getHook().getLocation());
+        if (bait.getAmount() > 1) bait.setAmount(bait.getAmount() - 1);
+        else player.getInventory().setItemInMainHand(null);
+        event.setCancelled(true);
+    }
+
+    /** Ciclo de captura do modo AFK (chamado pelo FishingTask). Retorna true se capturou. */
+    public boolean afkCatch(Player player, Location hookLoc) {
+        Fish fish = rollFish(player, hookLoc);
+        if (fish == null) return false;
+        double length = WeightUtil.rollLength(fish);
+        double weight = WeightUtil.rollWeight(fish, length);
+        processCaptured(player, fish, length, weight, hookLoc);
+        return true;
     }
 
     private void processCatch(Player player, Location hookLoc) {
@@ -80,12 +119,7 @@ public final class FishingListener implements Listener {
         if (fish == null) return;
         double length = WeightUtil.rollLength(fish);
         double weight = WeightUtil.rollWeight(fish, length);
-        PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-        if (!stats.canAddToBag(weight)) {
-            player.sendMessage(plugin.getMessages().parse("fish.bag-full"));
-            return;
-        }
-        handleSuccessfulCatch(player, fish, length, weight, hookLoc, stats);
+        processCaptured(player, fish, length, weight, hookLoc);
     }
 
     private Fish rollFish(Player player, Location hookLoc) {
@@ -99,8 +133,6 @@ public final class FishingListener implements Listener {
         if (candidates.isEmpty()) return null;
 
         PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-
-        // Vara quebrada impede pescar
         if (stats.isRodBroken()) {
             player.sendMessage(plugin.getMessages().parse("rod.broken"));
             return null;
@@ -114,12 +146,11 @@ public final class FishingListener implements Listener {
             luckModifier += plugin.getAlkaVipsHook().getFishingLuckBonus(player.getUniqueId());
         }
         luckModifier += (stats.getLevel() * 0.005);
-
-        // Encantamento Lucky (bonus % -> /100)
         luckModifier += plugin.getEnchantmentManager().getTotalLuckBonus(player) / 100.0;
-
-        // Bônus de classe
         luckModifier += plugin.getFishingClassManager().getFishChanceBonus(player) / 100.0;
+
+        // Booster FISH_CHANCE (+% de chance de peixe melhor)
+        luckModifier += plugin.getBoosterService().getFishChance(player) / 100.0;
 
         return weightedRoll(candidates, luckModifier);
     }
@@ -143,7 +174,10 @@ public final class FishingListener implements Listener {
         return Math.max(0, seaLevel - y);
     }
 
-    private void handleSuccessfulCatch(Player player, Fish fish, double length, double weight, Location loc, PlayerFishStats stats) {
+    /** Pipeline comum de captura: sacola no banco + stats + corais + XP + torneio. */
+    private void processCaptured(Player player, Fish fish, double length, double weight, Location loc) {
+        PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+
         // Verificar peso suportado pela vara
         var rod = plugin.getRodManager().getRodById(stats.getRodId());
         if (rod != null && weight > rod.getSupportedWeight()) {
@@ -151,43 +185,27 @@ public final class FishingListener implements Listener {
                 stats.setRodBroken(true);
                 player.sendMessage(plugin.getMessages().parse("rod.broken"));
                 plugin.getPlayerDataManager().save(player.getUniqueId());
+                plugin.getFishingTask().stop(player);
                 return; // Peixe escapa
             }
             player.sendMessage(plugin.getMessages().parse("rod.cannot-carry"));
             return;
         }
 
-        stats.addToBag(weight);
+        // Peixe vai direto para a sacola no banco (nunca para o inventário)
+        plugin.getFishBagService().add(player, fish, weight);
+
         stats.addCatch(fish, length, weight);
-
-        ItemStack fishItem = fish.toItemStack(plugin, length, weight);
-        player.getInventory().addItem(fishItem).values().forEach(i -> player.getWorld().dropItem(player.getLocation(), i));
-
-        // Auto-sell via AlkaShop hook se habilitado
-        boolean autoSold = false;
-        if (plugin.getConfig().getBoolean("integrations.alkashop-sell-enabled", true)
-                && plugin.getAlkaShopHook() != null && plugin.getAlkaShopHook().isAvailable()) {
-            if (plugin.getAlkaShopHook().isAutoSellActive(player)) {
-                var totals = plugin.getAlkaShopHook().sellItems(player, List.of(fishItem));
-                if (!totals.isEmpty()) {
-                    plugin.getAlkaShopHook().notifyAutoSell(player, totals);
-                    stats.removeFromBag(weight);
-                    autoSold = true;
-                }
-            }
-        }
+        stats.addToBag(weight);
 
         fishCaughtRepositoryInsert(player, fish, length, weight, loc);
-
         plugin.getTournamentManager().registerCatch(player, fish, length, weight);
 
-        if (!autoSold) {
-            player.sendMessage(plugin.getMessages().parse("fish.caught", java.util.Map.of(
-                    "fish", fish.getDisplayName(),
-                    "rarity", fish.getRarity().coloredName(),
-                    "length", String.format("%.1f", length),
-                    "weight", String.format("%.2f", weight))));
-        }
+        player.sendMessage(plugin.getMessages().parse("fish.caught", java.util.Map.of(
+                "fish", fish.getDisplayName(),
+                "rarity", fish.getRarity().coloredName(),
+                "length", String.format("%.1f", length),
+                "weight", String.format("%.2f", weight))));
 
         if (fish.getRarity().ordinal() >= FishRarity.LEGENDARY.ordinal()) {
             Bukkit.broadcast(plugin.getMessages().parse("fish.legendary-broadcast", java.util.Map.of(
@@ -196,28 +214,23 @@ public final class FishingListener implements Listener {
                     "length", String.format("%.1f", length))));
         }
 
-        // Nacar (corais)
+        // Nacar (corais) com booster CORAL_MULTIPLIER
         double nacarReward = fish.getBasePrice() * 0.1;
         nacarReward *= (1 + plugin.getEnchantmentManager().getTotalMultiplierBonus(player));
         nacarReward *= (1 + plugin.getFishingClassManager().getCoinBonus(player) / 100.0);
+        nacarReward *= (1 + plugin.getBoosterService().getCoralMultiplier(player) / 100.0);
         stats.setNacar(stats.getNacar() + nacarReward);
 
-        // Keychain
         plugin.getEnchantmentManager().processKeychain(player);
-
-        // Recompensas da vara
         processRodRewards(player, rod);
 
-        // mcMMO XP
         if (plugin.getConfig().getBoolean("mcmmo.enabled", true) && plugin.getMcMMOHook() != null
                 && plugin.getMcMMOHook().isAvailable()) {
             double mcmmoXp = plugin.getConfig().getDouble("mcmmo.base-xp", 5.0) * weight;
             plugin.getMcMMOHook().addFishingXp(player, mcmmoXp);
         }
 
-        // Contador de peixes na área
         plugin.getFishingAreaManager().incrementFishCount(player);
-
         plugin.getLevelManager().addXp(player, stats, fish.getXpReward());
         plugin.getPlayerDataManager().save(player.getUniqueId());
     }
@@ -240,21 +253,5 @@ public final class FishingListener implements Listener {
                         loc.getBlock().getBiome().getKey().asString(), loc.getWorld().getName()));
             } catch (Exception ignored) {}
         });
-    }
-
-    /** Ativa uma isca quando o jogador joga a linha na água. */
-    @EventHandler
-    public void onBaitThrow(PlayerFishEvent event) {
-        if (event.getState() != PlayerFishEvent.State.FISHING) return;
-        Player player = event.getPlayer();
-        ItemStack bait = player.getInventory().getItemInMainHand();
-        if (!plugin.getBaitManager().isBaitItem(bait)) return;
-        String baitId = plugin.getBaitManager().getBaitIdFromItem(bait);
-        Bait baitDef = plugin.getBaitManager().getBaitById(baitId);
-        if (baitDef == null) return;
-        plugin.getBaitManager().activateBait(player, baitDef, event.getHook().getLocation());
-        if (bait.getAmount() > 1) bait.setAmount(bait.getAmount() - 1);
-        else player.getInventory().setItemInMainHand(null);
-        event.setCancelled(true);
     }
 }

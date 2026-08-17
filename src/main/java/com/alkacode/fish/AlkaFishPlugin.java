@@ -6,6 +6,7 @@ import com.alkacode.fish.api.AlkaFishAPI;
 import com.alkacode.fish.command.AlkaFishAdminCommand;
 import com.alkacode.fish.command.FishCommand;
 import com.alkacode.fish.command.SairCommand;
+import com.alkacode.fish.database.repository.FishBagRepository;
 import com.alkacode.fish.database.repository.FishCaughtRepository;
 import com.alkacode.fish.database.repository.PlayerFishDataRepository;
 import com.alkacode.fish.database.repository.TournamentRecordRepository;
@@ -43,6 +44,9 @@ import com.alkacode.fish.manager.RodManager;
 import com.alkacode.fish.manager.TensionGameManager;
 import com.alkacode.fish.manager.TournamentManager;
 import com.alkacode.fish.placeholder.AlkaFishExpansion;
+import com.alkacode.fish.service.BoosterService;
+import com.alkacode.fish.service.FishBagService;
+import com.alkacode.fish.task.FishingTask;
 import org.bukkit.Bukkit;
 
 import java.util.logging.Level;
@@ -72,6 +76,12 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     private PlayerFishDataRepository playerFishDataRepository;
     private FishCaughtRepository fishCaughtRepository;
     private TournamentRecordRepository tournamentRecordRepository;
+    private FishBagRepository fishBagRepository;
+
+    private FishBagService fishBagService;
+    private BoosterService boosterService;
+    private FishingTask fishingTask;
+    private FishingListener fishingListener;
 
     private AlkaEconomyBridge economyBridge;
 
@@ -111,6 +121,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         this.playerFishDataRepository = new PlayerFishDataRepository(apiCore.getDatabase());
         this.fishCaughtRepository = new FishCaughtRepository(apiCore.getDatabase());
         this.tournamentRecordRepository = new TournamentRecordRepository(apiCore.getDatabase());
+        this.fishBagRepository = new FishBagRepository(apiCore.getDatabase());
         createTables();
 
         this.economyBridge = new AlkaEconomyBridge();
@@ -129,9 +140,14 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         this.fishingAreaManager = new FishingAreaManager(this);
         this.rewardManager = new RewardManager(this);
 
+        this.fishBagService = new FishBagService(this);
+        this.boosterService = new BoosterService(this);
+        this.fishingTask = new FishingTask(this);
+        this.fishingListener = new FishingListener(this);
+
         this.api = new AlkaFishAPI(this);
 
-        getServer().getPluginManager().registerEvents(new FishingListener(this), this);
+        getServer().getPluginManager().registerEvents(this.fishingListener, this);
         getServer().getPluginManager().registerEvents(new CookingListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new FishingAreaTrackerListener(this), this);
@@ -169,6 +185,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
             playerFishDataRepository.createTable();
             fishCaughtRepository.createTable();
             tournamentRecordRepository.createTable();
+            fishBagRepository.createTable();
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Falha ao criar tabelas do AlkaFish", e);
         }
@@ -181,6 +198,9 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         }
         if (tournamentManager != null) {
             tournamentManager.shutdown();
+        }
+        if (fishingTask != null) {
+            fishingTask.stopAll();
         }
         if (fishingAreaManager != null) {
             fishingAreaManager.shutdown();
@@ -214,6 +234,12 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     public PlayerFishDataRepository getPlayerFishDataRepository() { return playerFishDataRepository; }
     public FishCaughtRepository getFishCaughtRepository() { return fishCaughtRepository; }
     public TournamentRecordRepository getTournamentRecordRepository() { return tournamentRecordRepository; }
+    public FishBagRepository getFishBagRepository() { return fishBagRepository; }
+
+    public FishBagService getFishBagService() { return fishBagService; }
+    public BoosterService getBoosterService() { return boosterService; }
+    public FishingTask getFishingTask() { return fishingTask; }
+    public FishingListener getFishingListener() { return fishingListener; }
 
     public AlkaEconomyBridge getEconomyBridge() { return economyBridge; }
 
