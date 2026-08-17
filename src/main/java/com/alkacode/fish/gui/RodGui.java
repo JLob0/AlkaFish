@@ -17,19 +17,23 @@ public final class RodGui extends FishGui {
         fillBlack();
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         FishingRod rod = plugin.getRodManager().getRodById(stats.getRodId());
-        FishingRod next = rod != null ? plugin.getRodManager().getNextRod(rod) : null;
+        // Fallback: se o id não existir (ex.: id antigo/inexistente no stats), usa a vara padrão
+        // para o menu nunca ficar vazio.
+        if (rod == null) rod = plugin.getRodManager().getDefaultRod();
+        final FishingRod fRod = rod;
+        FishingRod next = fRod != null ? plugin.getRodManager().getNextRod(fRod) : null;
 
         // Slot 11: vara atual (sempre)
-        if (rod != null) {
-            setItem(11, rod.toItemStack(plugin, stats.getRodEnchantLevels(), stats.getNacar(), stats.getNacarNext()), e -> {});
+        if (fRod != null) {
+            setItem(11, fRod.toItemStack(plugin, stats.getRodEnchantLevels(), stats.getNacar(), stats.getNacarNext()), e -> {});
         }
 
         // Slot 13: upgrade (sempre visível se existe próxima vara)
         if (next != null) {
-            boolean canUpgrade = plugin.getRodManager().canUpgrade(player, rod);
+            boolean canUpgrade = plugin.getRodManager().canUpgrade(player, fRod);
             setItem(13, canUpgrade ? createUpgradeItem(next) : createUpgradeBlockedItem(next), e -> {
                 if (canUpgrade) {
-                    plugin.getRodManager().upgradeRod(player, rod);
+                    plugin.getRodManager().upgradeRod(player, fRod);
                     player.closeInventory();
                 } else {
                     player.sendMessage(plugin.getMessages().parse("rod.not-enough-nacar",
@@ -39,16 +43,16 @@ public final class RodGui extends FishGui {
         }
 
         // Slot 15: reparar ou status da vara
-        if (rod != null) {
+        if (fRod != null) {
             if (stats.isRodBroken()) {
-                boolean canRepair = plugin.getRodManager().canRepair(player, rod);
-                setItem(15, canRepair ? createRepairItem(rod) : createRepairBlockedItem(rod), e -> {
+                boolean canRepair = plugin.getRodManager().canRepair(player, fRod);
+                setItem(15, canRepair ? createRepairItem(fRod) : createRepairBlockedItem(fRod), e -> {
                     if (canRepair) {
                         plugin.getRodManager().repairRod(player);
                         player.closeInventory();
                     } else {
                         player.sendMessage(plugin.getMessages().parse("rod.not-enough-nacar",
-                            java.util.Map.of("cost", String.format("%.0f", rod.getRepairCostCoins()))));
+                            java.util.Map.of("cost", String.format("%.0f", fRod.getRepairCostCoins()))));
                     }
                 });
             } else {

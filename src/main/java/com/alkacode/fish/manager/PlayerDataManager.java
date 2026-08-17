@@ -76,6 +76,13 @@ public final class PlayerDataManager {
         cache.remove(uuid);
     }
 
+    /** Zera os dados de pesca do jogador (novo PlayerFishStats padrão) e salva. */
+    public void reset(UUID uuid) {
+        PlayerFishStats fresh = new PlayerFishStats(uuid);
+        cache.put(uuid, fresh);
+        save(uuid);
+    }
+
     private PlayerFishDataEntity toEntity(PlayerFishStats s) {
         StringBuilder enchants = new StringBuilder();
         for (var e : s.getRodEnchantLevels().entrySet()) {

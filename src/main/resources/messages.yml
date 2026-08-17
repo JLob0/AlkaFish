@@ -75,6 +75,8 @@ admin:
   help-npc: "<gray>/alkafish npc spawn|remove <yellow>- Gerenciar NPC de pesca"
   help-setrod: "<gray>/alkafish setrod <player> <rod-id> <yellow>- Setar vara"
   help-area: "<gray>/alkafish area set|spawn|lobby|saida|info <yellow>- Configurar área de pesca"
+  help-repairrod: "<gray>/alkafish repairrod <player> <yellow>- Reparar vara (teste)"
+  help-resetdata: "<gray>/alkafish resetdata <player> <yellow>- Zerar dados de pesca"
 
 errors:
   no-permission: "{prefix}<red>Sem permissão!"

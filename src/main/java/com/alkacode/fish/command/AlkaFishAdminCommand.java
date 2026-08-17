@@ -51,6 +51,9 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             case "givebooster" -> handleGiveBooster(sender, args);
             case "givenacar" -> handleGiveNacar(sender, args, true);
             case "removenacar" -> handleGiveNacar(sender, args, false);
+            case "repairrod" -> handleRepairRod(sender, args);
+            case "breakrod" -> handleBreakRod(sender, args);
+            case "resetdata", "reset" -> handleResetData(sender, args);
             default -> sendAdminHelp(sender);
         }
         return true;
@@ -275,6 +278,57 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 + " nacar para " + target.getName() + "!");
     }
 
+    private void handleRepairRod(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("<red>Use: /alkafish repairrod <player>");
+            return;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            return;
+        }
+        var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
+        stats.setRodBroken(false);
+        var rod = plugin.getRodManager().getRodById(stats.getRodId());
+        if (rod == null) rod = plugin.getRodManager().getDefaultRod();
+        if (rod != null) plugin.getRodManager().giveRodItem(target, rod);
+        plugin.getPlayerDataManager().save(target.getUniqueId());
+        sender.sendMessage("<green>Vara de " + target.getName() + " reparada!");
+    }
+
+    private void handleBreakRod(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("<red>Use: /alkafish breakrod <player>");
+            return;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            return;
+        }
+        var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
+        stats.setRodBroken(true);
+        plugin.getPlayerDataManager().save(target.getUniqueId());
+        plugin.getRodManager().removeRodItem(target);
+        sender.sendMessage("<red>Vara de " + target.getName() + " quebrada (para testar reparo).");
+    }
+
+    private void handleResetData(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage("<red>Use: /alkafish resetdata <player>");
+            return;
+        }
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            return;
+        }
+        plugin.getPlayerDataManager().reset(target.getUniqueId());
+        plugin.getRodManager().removeRodItem(target);
+        sender.sendMessage("<green>Dados de pesca de " + target.getName() + " resetados!");
+    }
+
     private void sendAdminHelp(CommandSender sender) {
         sender.sendMessage(plugin.getMessages().parse("admin.help-header"));
         sender.sendMessage(plugin.getMessages().parse("admin.help-reload"));
@@ -283,5 +337,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
         sender.sendMessage(plugin.getMessages().parse("admin.help-npc"));
         sender.sendMessage(plugin.getMessages().parse("admin.help-setrod"));
         sender.sendMessage(plugin.getMessages().parse("admin.help-area"));
+        sender.sendMessage(plugin.getMessages().parse("admin.help-repairrod"));
+        sender.sendMessage(plugin.getMessages().parse("admin.help-resetdata"));
     }
 }
