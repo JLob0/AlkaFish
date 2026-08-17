@@ -47,6 +47,16 @@ public final class FishingListener implements Listener {
         FishHook hook = event.getHook();
         Location hookLoc = hook.getLocation();
 
+        // Impedir jogar a linha se a vara está quebrada
+        if (event.getState() == PlayerFishEvent.State.FISHING) {
+            var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+            if (stats.isRodBroken()) {
+                event.setCancelled(true);
+                player.sendMessage(plugin.getMessages().parse("rod.broken"));
+                return;
+            }
+        }
+
         // Dentro da área: deixa a animação vanilla acontecer (FISHING NÃO é cancelado).
         // Quando a linha assenta na água dentro da área, inicia o modo AFK.
         if (plugin.getFishingAreaManager().isInArea(hookLoc)) {
@@ -288,11 +298,11 @@ public final class FishingListener implements Listener {
                     "length", String.format("%.1f", length))));
         }
 
-        // Nacar (corais) com booster CORAL_MULTIPLIER
+        // Nacar com booster NACAR_MULTIPLIER
         double nacarReward = fish.getBasePrice() * 0.1;
         nacarReward *= (1 + plugin.getEnchantmentManager().getTotalMultiplierBonus(player));
         nacarReward *= (1 + plugin.getFishingClassManager().getCoinBonus(player) / 100.0);
-        nacarReward *= (1 + plugin.getBoosterService().getCoralMultiplier(player) / 100.0);
+        nacarReward *= (1 + plugin.getBoosterService().getNacarMultiplier(player) / 100.0);
         stats.setNacar(stats.getNacar() + nacarReward);
 
         plugin.getEnchantmentManager().processKeychain(player);

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Gerencia boosters ativos (FISH_CHANCE / CORAL_MULTIPLIER / SELL_BONUS). */
+/** Gerencia boosters ativos (FISH_CHANCE / NACAR_MULTIPLIER / SELL_BONUS). */
 public final class BoosterService {
 
     private final AlkaFishPlugin plugin;
@@ -54,9 +54,9 @@ public final class BoosterService {
         return bonusFor(player, "FISH_CHANCE");
     }
 
-    /** +% de corais ganhos (CORAL_MULTIPLIER). */
-    public double getCoralMultiplier(Player player) {
-        return bonusFor(player, "CORAL_MULTIPLIER");
+    /** +% de nacar ganhos (NACAR_MULTIPLIER). */
+    public double getNacarMultiplier(Player player) {
+        return bonusFor(player, "NACAR_MULTIPLIER");
     }
 
     /** +% no preço de venda (SELL_BONUS). */

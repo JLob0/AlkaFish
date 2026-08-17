@@ -1,6 +1,6 @@
 package com.alkacode.fish.model;
 
-/** Booster ativo de um jogador (FISH_CHANCE / CORAL_MULTIPLIER / SELL_BONUS). */
+/** Booster ativo de um jogador (FISH_CHANCE / NACAR_MULTIPLIER / SELL_BONUS). */
 public class Booster {
     private final String type;
     private final double multiplier;

@@ -49,6 +49,7 @@ public final class EnchantGui extends FishGui {
             slot++;
         }
 
+        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
         setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

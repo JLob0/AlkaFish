@@ -49,8 +49,8 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             case "setrod" -> handleSetRod(sender, args);
             case "area" -> handleArea(sender, args);
             case "givebooster" -> handleGiveBooster(sender, args);
-            case "givecorals" -> handleGiveCorals(sender, args, true);
-            case "removecorals" -> handleGiveCorals(sender, args, false);
+            case "givenacar" -> handleGiveNacar(sender, args, true);
+            case "removenacar" -> handleGiveNacar(sender, args, false);
             default -> sendAdminHelp(sender);
         }
         return true;
@@ -220,7 +220,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
     private void handleGiveBooster(CommandSender sender, String[] args) {
         if (args.length < 5) {
             sender.sendMessage("<red>Use: /alkafish givebooster <player> <tipo> <multiplier> <duracao>");
-            sender.sendMessage("<gray>Tipos: FISH_CHANCE, CORAL_MULTIPLIER, SELL_BONUS");
+            sender.sendMessage("<gray>Tipos: FISH_CHANCE, NACAR_MULTIPLIER, SELL_BONUS");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
@@ -238,17 +238,17 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             sender.sendMessage("<red>Multiplicador/duração inválidos!");
             return;
         }
-        if (!java.util.Set.of("FISH_CHANCE", "CORAL_MULTIPLIER", "SELL_BONUS").contains(type)) {
-            sender.sendMessage("<red>Tipo inválido! Use FISH_CHANCE, CORAL_MULTIPLIER ou SELL_BONUS.");
+        if (!java.util.Set.of("FISH_CHANCE", "NACAR_MULTIPLIER", "SELL_BONUS").contains(type)) {
+            sender.sendMessage("<red>Tipo inválido! Use FISH_CHANCE, NACAR_MULTIPLIER ou SELL_BONUS.");
             return;
         }
         plugin.getBoosterService().activate(target, type, multiplier, duration);
         sender.sendMessage("<green>Booster aplicado em " + target.getName() + "!");
     }
 
-    private void handleGiveCorals(CommandSender sender, String[] args, boolean give) {
+    private void handleGiveNacar(CommandSender sender, String[] args, boolean give) {
         if (args.length < 3) {
-            sender.sendMessage("<red>Use: /alkafish " + (give ? "givecorals" : "removecorals") + " <player> <amount>");
+            sender.sendMessage("<red>Use: /alkafish " + (give ? "givenacar" : "removenacar") + " <player> <amount>");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
@@ -266,7 +266,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
         var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
         double current = stats.getNacar();
         if (!give && amount > current) {
-            sender.sendMessage("<red>O jogador não tem corais suficientes!");
+            sender.sendMessage("<red>O jogador não tem nacar suficientes!");
             return;
         }
         stats.setNacar(give ? current + amount : current - amount);

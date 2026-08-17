@@ -42,6 +42,7 @@ public final class SellGui extends FishGui {
                     executeSell();
                     player.closeInventory();
                 });
+        setItem(47, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishBagGui(plugin, player).open());
         setItem(53, createItem(Material.REDSTONE_BLOCK, "<red>✖ Cancelar"),
                 e -> player.closeInventory());
 

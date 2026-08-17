@@ -35,6 +35,7 @@ public final class TournamentGui extends FishGui {
                             "<green>" + String.format("%.2f", score)), e -> {});
         }
 
+        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
         setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

@@ -86,33 +86,31 @@ public final class FishingTask {
         Session session = sessions.get(uuid);
         int currentCount = session != null ? session.fishCaught() : 0;
         Location hookLoc = hook.getLocation();
-        // hookLoc, NUNCA player.getLocation() - a profundidade (calculateDepth) usa esse Y
-        // pra filtrar peixe por min-depth, e todo peixe do fish.yml padrao exige min-depth
-        // >= 1. A posicao do JOGADOR (em pe no deck, acima da agua) sempre da profundidade
-        // ~0, entao nenhum peixe nunca passava no filtro - a vara nunca pescava nada.
-        boolean caught = plugin.getFishingListener().afkCatch(player, hookLoc);
 
-        // ActionBar em TODO ciclo (não só quando captura).
+        // ActionBar persistente — mostra em TODO ciclo
         String name = "peixe" + (currentCount == 1 ? "" : "s");
-        if (caught) {
-            int newCount = currentCount + 1;
-            sessions.put(uuid, session.withFishCaught(newCount));
-            player.sendActionBar(plugin.getMessages().parse("fish.afk_count",
-                    java.util.Map.of("count", String.valueOf(newCount), "name", name)));
-        } else {
-            player.sendActionBar(plugin.getMessages().parse("fish.afk_fishing",
-                    java.util.Map.of("count", String.valueOf(currentCount), "name", name)));
-        }
+        player.sendActionBar(plugin.getMessages().parse("fish.afk_fishing",
+            java.util.Map.of("count", String.valueOf(currentCount), "name", name)));
 
-        // Checagem de quebra (só se a vara for quebrável)
+        boolean caught = plugin.getFishingListener().afkCatch(player, hookLoc);
+        if (!caught) return;
+
+        int newCount = currentCount + 1;
+        sessions.put(uuid, session.withFishCaught(newCount));
+
+        // ActionBar de captura
+        player.sendActionBar(plugin.getMessages().parse("fish.afk_count",
+            java.util.Map.of("count", String.valueOf(newCount), "name", name)));
+
+        // Checagem de quebra
         if (!rod.isUnbreakable()) {
             double chance = rod.getBreakChance();
             if (chance > 0 && Math.random() * 100 < chance) {
                 stats.setRodBroken(true);
                 plugin.getPlayerDataManager().save(uuid);
+                plugin.getRodManager().removeRodItem(player);
+                retractAndStop(player, hook);
                 player.sendMessage(plugin.getMessages().parse("rod.broke_afk"));
-                // Remove o hook da água e para SEM mostrar o title de parada.
-                retractAndStopQuietly(player, hook);
             }
         }
     }
@@ -121,12 +119,6 @@ public final class FishingTask {
     private void retractAndStop(Player player, FishHook hook) {
         if (hook != null && hook.isValid()) hook.remove();
         stop(player);
-    }
-
-    /** Recolhe a linha e para o AFK SEM mostrar o title de parada (ex.: vara quebrou). */
-    private void retractAndStopQuietly(Player player, FishHook hook) {
-        if (hook != null && hook.isValid()) hook.remove();
-        stopQuietly(player);
     }
 
     /** Para o modo AFK mostrando o title de parada. */

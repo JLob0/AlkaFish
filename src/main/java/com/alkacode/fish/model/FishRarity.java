@@ -32,4 +32,28 @@ public enum FishRarity {
     public String coloredName() {
         return "<#" + color.asHexString().substring(1) + ">" + displayName + "</#" + color.asHexString().substring(1) + ">";
     }
+
+    /** Material do item que representa um peixe desta raridade (CodexGui). */
+    public org.bukkit.Material getDisplayMaterial() {
+        return switch (this) {
+            case COMMON -> org.bukkit.Material.COD;
+            case UNCOMMON -> org.bukkit.Material.SALMON;
+            case RARE -> org.bukkit.Material.PUFFERFISH;
+            case EPIC -> org.bukkit.Material.TROPICAL_FISH;
+            case LEGENDARY -> org.bukkit.Material.GOLDEN_APPLE;
+            case MYTHIC -> org.bukkit.Material.NETHER_STAR;
+        };
+    }
+
+    /** Material do separador de raridade (CodexGui). */
+    public org.bukkit.Material getSeparatorMaterial() {
+        return switch (this) {
+            case COMMON -> org.bukkit.Material.GRAY_STAINED_GLASS_PANE;
+            case UNCOMMON -> org.bukkit.Material.LIME_STAINED_GLASS_PANE;
+            case RARE -> org.bukkit.Material.BLUE_STAINED_GLASS_PANE;
+            case EPIC -> org.bukkit.Material.MAGENTA_STAINED_GLASS_PANE;
+            case LEGENDARY -> org.bukkit.Material.YELLOW_STAINED_GLASS_PANE;
+            case MYTHIC -> org.bukkit.Material.RED_STAINED_GLASS_PANE;
+        };
+    }
 }
