@@ -64,6 +64,8 @@ public final class FishingListener implements Listener {
                 if (plugin.getFishingTask().isFishing(player)) {
                     event.setCancelled(true);
                     if (event.getCaught() instanceof Item) event.getCaught().remove();
+                    // Recolhe a linha (o evento foi cancelado, então remove o hook manualmente).
+                    hook.remove();
                     // Puxou a linha manualmente -> avisa e encerra o AFK sem title de parada.
                     int count = plugin.getFishingAreaManager().getFishCount(player);
                     player.sendMessage(plugin.getMessages().parse("fish.stopped",
@@ -73,6 +75,7 @@ public final class FishingListener implements Listener {
             } else if (event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
                 // Recolheu a linha sem peixe -> também avisa e encerra o AFK.
                 if (plugin.getFishingTask().isFishing(player)) {
+                    hook.remove();
                     int count = plugin.getFishingAreaManager().getFishCount(player);
                     player.sendMessage(plugin.getMessages().parse("fish.stopped",
                             java.util.Map.of("count", String.valueOf(count))));
@@ -220,6 +223,16 @@ public final class FishingListener implements Listener {
                 || type == org.bukkit.Material.KELP || type == org.bukkit.Material.KELP_PLANT;
     }
 
+    /** Remove o FishHook lançado pelo jogador (para recolher a linha quando a vara quebra). */
+    private void removePlayerHook(Player player) {
+        for (var entity : player.getWorld().getEntitiesByClass(org.bukkit.entity.FishHook.class)) {
+            if (entity.getShooter() instanceof Player p && p.getUniqueId().equals(player.getUniqueId())) {
+                entity.remove();
+                break;
+            }
+        }
+    }
+
     /** Pipeline comum de captura: sacola no banco + stats + corais + XP + torneio. */
     private void processCaptured(Player player, Fish fish, double length, double weight, Location loc) {
         PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
@@ -231,6 +244,9 @@ public final class FishingListener implements Listener {
                 stats.setRodBroken(true);
                 player.sendMessage(plugin.getMessages().parse("rod.broken"));
                 plugin.getPlayerDataManager().save(player.getUniqueId());
+                // Remove a vara quebrada do inventário e recolhe a linha da água.
+                plugin.getRodManager().removeRodItem(player);
+                removePlayerHook(player);
                 plugin.getFishingTask().stop(player);
                 return; // Peixe escapa
             }

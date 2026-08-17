@@ -13,6 +13,7 @@ fish:
   stopped_subtitle: "<red>Linha recolhida"
   stopped: "{prefix}<gray>Linha recolhida! Você pescou <yellow>{count} <gray>peixe(s) nesta sessão."
   afk_count: "<aqua>🎣 Você pescou <yellow>{count} {name}</aqua>!"
+  afk_fishing: "<aqua>🎣 Pescando... <yellow>{count} {name} <aqua>capturados"
 
 bag:
   opened: "{prefix}<gray>Abrindo Fish Bag..."
