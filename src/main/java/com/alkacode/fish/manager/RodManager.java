@@ -115,17 +115,15 @@ public final class RodManager {
     }
 
     public boolean canRepair(Player player, FishingRod rod) {
-        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
-        if (coins < rod.getRepairCostCoins()) return false;
-        return plugin.getPlayerDataManager().getStats(player.getUniqueId()).getNacar() >= rod.getRepairCostNacar();
+        return rod != null;
     }
 
     public boolean repairRod(Player player) {
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         FishingRod rod = getRodById(stats.getRodId());
+        if (rod == null) rod = getDefaultRod();
         if (rod == null) return false;
-        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", rod.getRepairCostCoins());
-        stats.setNacar(stats.getNacar() - rod.getRepairCostNacar());
+        // Reparo é gratuito e sempre funciona (não depende de coins/nacar/economia).
         stats.setRodBroken(false);
         giveRodItem(player, rod);
         plugin.getPlayerDataManager().save(player.getUniqueId());

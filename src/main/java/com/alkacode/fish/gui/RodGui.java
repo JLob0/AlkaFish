@@ -42,18 +42,12 @@ public final class RodGui extends FishGui {
             });
         }
 
-        // Slot 15: reparar ou status da vara
+        // Slot 15: reparar ou status da vara (reparo é gratuito e sempre disponível)
         if (fRod != null) {
             if (stats.isRodBroken()) {
-                boolean canRepair = plugin.getRodManager().canRepair(player, fRod);
-                setItem(15, canRepair ? createRepairItem(fRod) : createRepairBlockedItem(fRod), e -> {
-                    if (canRepair) {
-                        plugin.getRodManager().repairRod(player);
-                        player.closeInventory();
-                    } else {
-                        player.sendMessage(plugin.getMessages().parse("rod.not-enough-nacar",
-                            java.util.Map.of("cost", String.format("%.0f", fRod.getRepairCostCoins()))));
-                    }
+                setItem(15, createRepairItem(fRod), e -> {
+                    plugin.getRodManager().repairRod(player);
+                    player.closeInventory();
                 });
             } else {
                 setItem(15, createItem(Material.LIME_DYE, "<green>✔ Vara em boas condições",
@@ -85,12 +79,5 @@ public final class RodGui extends FishGui {
         return createItem(Material.IRON_INGOT, "<yellow>🔧 Reparar Vara",
             "<gray>Custo: <green>" + String.format("%.0f", rod.getRepairCostCoins())
                 + " coins <gray>+ <aqua>" + String.format("%.0f", rod.getRepairCostNacar()) + " nacar");
-    }
-
-    private ItemStack createRepairBlockedItem(FishingRod rod) {
-        return createItem(Material.RED_STAINED_GLASS_PANE, "<yellow>🔧 Reparar Vara (Bloqueado)",
-            "<gray>Custo: <green>" + String.format("%.0f", rod.getRepairCostCoins())
-                + " coins <gray>+ <aqua>" + String.format("%.0f", rod.getRepairCostNacar()) + " nacar",
-            "<red>Você não tem recursos suficientes.");
     }
 }
