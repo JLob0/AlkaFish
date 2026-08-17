@@ -6,9 +6,7 @@ fish:
     display-name: "<gray>Sardinha"
     rarity: COMMON
     biomes:
-      - OCEAN
-      - BEACH
-      - RIVER
+      - ANY
     min-length: 10.0
     max-length: 25.0
     min-weight: 0.1
@@ -28,8 +26,7 @@ fish:
     display-name: "<gray>Tainha"
     rarity: COMMON
     biomes:
-      - OCEAN
-      - BEACH
+      - ANY
     min-length: 20.0
     max-length: 45.0
     min-weight: 0.5
@@ -201,4 +198,23 @@ fish:
     xp-reward: 2000.0
     lore:
       - "<red><bold>UM MONSTRO DAS PROFUNDEZAS!"
-      - "<dark_red>Dizem que afunda navios..."
+      - "<dark_red>Dizem que afundam navios..."
+
+  peixe_fallback:
+    display-name: "<gray>Peixe Comum"
+    rarity: COMMON
+    biomes:
+      - ANY
+    min-length: 10.0
+    max-length: 35.0
+    min-weight: 0.1
+    max-weight: 0.8
+    base-price: 5.0
+    items-adder-id: "alkafish:peixe_fallback"
+    custom-model-data: 10011
+    requires-night: false
+    requires-rain: false
+    min-depth: 1
+    xp-reward: 8.0
+    lore:
+      - "<gray>Peixe comum encontrado em qualquer lugar."

@@ -82,15 +82,34 @@ public final class FishManager {
     }
 
     public List<Fish> getFishForConditions(String biome, boolean isNight, boolean isRaining, int depth) {
+        String normalizedBiome = normalizeBiome(biome);
         List<Fish> result = new ArrayList<>();
         for (Fish fish : fishById.values()) {
-            if (!fish.getBiomes().contains(biome) && !fish.getBiomes().contains("ANY")) continue;
+            if (!matchesBiome(fish.getBiomes(), normalizedBiome)) continue;
             if (fish.isRequiresNight() && !isNight) continue;
             if (fish.isRequiresRain() && !isRaining) continue;
             if (depth < fish.getMinDepth()) continue;
             result.add(fish);
         }
         return result;
+    }
+
+    /** Normaliza um bioma: remove o namespace (minecraft:) e deixa em MAIÚSCULAS.
+     * Assim "minecraft:ocean" e "OCEAN" (do fish.yml) são tratados como iguais. */
+    private String normalizeBiome(String biome) {
+        if (biome == null) return "";
+        String s = biome;
+        int idx = s.indexOf(':');
+        if (idx >= 0) s = s.substring(idx + 1);
+        return s.toUpperCase();
+    }
+
+    private boolean matchesBiome(List<String> configured, String normalizedBiome) {
+        for (String b : configured) {
+            String nb = normalizeBiome(b);
+            if (nb.equals(normalizedBiome) || nb.equals("ANY")) return true;
+        }
+        return false;
     }
 
     public Collection<Fish> getAllFish() {
