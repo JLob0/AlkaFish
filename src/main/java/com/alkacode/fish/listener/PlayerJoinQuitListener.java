@@ -18,11 +18,15 @@ public final class PlayerJoinQuitListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         plugin.getPlayerDataManager().loadAsync(event.getPlayer().getUniqueId());
+        plugin.getFishBagService().loadAsync(event.getPlayer().getUniqueId());
+        plugin.getPendingRewardService().loadAsync(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         plugin.getPlayerDataManager().unload(event.getPlayer().getUniqueId());
+        plugin.getFishBagService().unload(event.getPlayer().getUniqueId());
+        plugin.getPendingRewardService().unload(event.getPlayer().getUniqueId());
         plugin.getTensionGameManager().stopGame(event.getPlayer());
         plugin.getFishingTask().stop(event.getPlayer());
     }

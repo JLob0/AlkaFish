@@ -9,6 +9,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 /** Comando /alkafish (admin). */
 public final class AlkaFishAdminCommand implements CommandExecutor {
 
@@ -22,7 +24,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                              @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission("alkafish.admin")) {
-            sender.sendMessage(plugin.getMessages().parse("errors.no-permission"));
+            send(sender, "errors.no-permission");
             return true;
         }
 
@@ -40,8 +42,9 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 plugin.getEnchantmentManager().reload();
                 plugin.getFishingClassManager().reload();
                 plugin.getRewardManager().reload();
+                plugin.getTierManager().reload();
                 plugin.getMessages().reload();
-                sender.sendMessage(plugin.getMessages().parse("admin.reloaded"));
+                send(sender, "admin.reloaded");
             }
             case "tournament", "torneio" -> handleTournament(sender, args);
             case "givexp" -> handleGiveXp(sender, args);
@@ -61,23 +64,27 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
 
     private void handleArea(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Uso: /alkafish area set|spawn|lobby|saida|info");
+            send(sender, "admin.area-usage");
             return;
         }
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("<red>Apenas jogadores!");
+            send(sender, "admin.players-only");
             return;
         }
         switch (args[1].toLowerCase()) {
             case "pos1" -> {
                 plugin.getFishingAreaManager().setPos1(player.getLocation());
-                sender.sendMessage("<green>Posição 1 definida: " + player.getLocation().getBlockX()
-                        + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
+                send(sender, "admin.pos1-set", Map.of(
+                        "x", String.valueOf(player.getLocation().getBlockX()),
+                        "y", String.valueOf(player.getLocation().getBlockY()),
+                        "z", String.valueOf(player.getLocation().getBlockZ())));
             }
             case "pos2" -> {
                 plugin.getFishingAreaManager().setPos2(player.getLocation());
-                sender.sendMessage("<green>Posição 2 definida: " + player.getLocation().getBlockX()
-                        + ", " + player.getLocation().getBlockY() + ", " + player.getLocation().getBlockZ());
+                send(sender, "admin.pos2-set", Map.of(
+                        "x", String.valueOf(player.getLocation().getBlockX()),
+                        "y", String.valueOf(player.getLocation().getBlockY()),
+                        "z", String.valueOf(player.getLocation().getBlockZ())));
             }
             case "set" -> {
                 // Usa pos1/pos2 do plugin se disponível; senão, tenta a seleção do WorldEdit.
@@ -87,15 +94,15 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                     if (sel.isPresent()) region = sel.get();
                 }
                 if (region == null) {
-                    sender.sendMessage("<red>Use /alkafish area pos1 e /alkafish area pos2 (ou a //wand do WorldEdit) para marcar a área!");
+                    send(sender, "admin.area-mark-first");
                     return;
                 }
                 plugin.getFishingAreaManager().setArea("pesca", "<aqua>Área de Pesca", region);
-                sender.sendMessage(plugin.getMessages().parse("admin.area-set"));
+                send(sender, "admin.area-set");
             }
             case "spawn" -> {
                 plugin.getFishingAreaManager().setSpawn(player.getLocation());
-                sender.sendMessage(plugin.getMessages().parse("admin.area-spawn-set"));
+                send(sender, "admin.area-spawn-set");
             }
             case "lobby" -> {
                 FishingRegion lobbyRegion = plugin.getFishingAreaManager().getSelectionRegion();
@@ -104,59 +111,63 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                     if (sel.isPresent()) lobbyRegion = sel.get();
                 }
                 if (lobbyRegion == null) {
-                    sender.sendMessage("<red>Use /alkafish area pos1 e /alkafish area pos2 (ou a //wand do WorldEdit) para marcar o lobby!");
+                    send(sender, "admin.area-mark-lobby-first");
                     return;
                 }
                 plugin.getFishingAreaManager().setLobby(lobbyRegion);
-                sender.sendMessage(plugin.getMessages().parse("admin.area-lobby-set"));
+                send(sender, "admin.area-lobby-set");
             }
             case "saida" -> {
                 plugin.getFishingAreaManager().setExit(player.getLocation());
-                sender.sendMessage(plugin.getMessages().parse("admin.area-exit-set"));
+                send(sender, "admin.area-exit-set");
             }
             case "info" -> {
                 var area = plugin.getFishingAreaManager().getArea();
                 if (area.isEmpty()) {
-                    sender.sendMessage("<red>Área de pesca não configurada.");
+                    send(sender, "admin.area-not-configured");
                     return;
                 }
                 var r = area.get().getRegion();
-                sender.sendMessage("<gold><bold>🏝 Área de Pesca");
-                sender.sendMessage("<gray>ID: <aqua>" + area.get().getId());
-                sender.sendMessage("<gray>Região: <green>" + r.getWorld() + " <gray>(" + r.getX1() + "," + r.getY1() + "," + r.getZ1() + ") -> (" + r.getX2() + "," + r.getY2() + "," + r.getZ2() + ")");
-                sender.sendMessage("<gray>Spawn: <green>" + (area.get().getSpawn() != null ? "definido" : "centro da região"));
+                send(sender, "admin.area-info-header");
+                send(sender, "admin.area-info-id", Map.of("id", area.get().getId()));
+                send(sender, "admin.area-info-region", Map.of(
+                        "world", String.valueOf(r.getWorld()),
+                        "x1", String.valueOf(r.getX1()), "y1", String.valueOf(r.getY1()), "z1", String.valueOf(r.getZ1()),
+                        "x2", String.valueOf(r.getX2()), "y2", String.valueOf(r.getY2()), "z2", String.valueOf(r.getZ2())));
+                send(sender, "admin.area-info-spawn", Map.of(
+                        "spawn", area.get().getSpawn() != null ? "definido" : "centro da região"));
             }
-            default -> sender.sendMessage("<red>Uso: /alkafish area pos1|pos2|set|spawn|lobby|saida|info");
+            default -> send(sender, "admin.area-usage");
         }
     }
 
     private void handleNpc(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Use: /alkafish npc spawn | remove");
+            send(sender, "admin.npc-usage");
             return;
         }
         if (args[1].equalsIgnoreCase("spawn")) {
             plugin.getNpcManager().spawnNpc();
-            sender.sendMessage(plugin.getMessages().parse("npc.spawned"));
+            send(sender, "npc.spawned");
         } else if (args[1].equalsIgnoreCase("remove")) {
             plugin.getNpcManager().removeNpc();
-            sender.sendMessage(plugin.getMessages().parse("npc.removed"));
+            send(sender, "npc.removed");
         }
     }
 
     private void handleSetRod(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage("<red>Use: /alkafish setrod <player> <rod-id>");
+            send(sender, "admin.setrod-usage");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         var rod = plugin.getRodManager().getRodById(args[2]);
         if (rod == null) {
-            sender.sendMessage("<red>Vara não encontrada!");
+            send(sender, "admin.rod-not-found");
             return;
         }
         var s = plugin.getPlayerDataManager().getStats(target.getUniqueId());
@@ -164,12 +175,12 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
         s.setRodLevel(rod.getLevel());
         plugin.getPlayerDataManager().save(target.getUniqueId());
         plugin.getRodManager().giveRodItem(target, rod);
-        sender.sendMessage("<green>Vara setada!");
+        send(sender, "admin.rod-set");
     }
 
     private void handleTournament(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Use: /alkafish tournament start <tipo> [minutos]");
+            send(sender, "admin.tournament-usage");
             return;
         }
         if (args[1].equalsIgnoreCase("start")) {
@@ -179,7 +190,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 try {
                     type = TournamentType.valueOf(args[2].toUpperCase());
                 } catch (IllegalArgumentException e) {
-                    sender.sendMessage("<red>Tipo inválido!");
+                    send(sender, "admin.tournament-invalid-type");
                     return;
                 }
             }
@@ -189,46 +200,45 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 } catch (NumberFormatException ignored) {}
             }
             plugin.getTournamentManager().startTournament(type, duration);
-            sender.sendMessage(plugin.getMessages().parse("admin.tournament-started"));
+            send(sender, "admin.tournament-started");
         } else if (args[1].equalsIgnoreCase("stop")) {
             plugin.getTournamentManager().endTournament();
-            sender.sendMessage(plugin.getMessages().parse("admin.tournament-stopped"));
+            send(sender, "admin.tournament-stopped");
         }
     }
 
     private void handleGiveXp(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage("<red>Use: /alkafish givexp <player> <amount>");
+            send(sender, "admin.givexp-usage");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         double xp;
         try {
             xp = Double.parseDouble(args[2]);
         } catch (NumberFormatException e) {
-            sender.sendMessage("<red>Valor de XP inválido!");
+            send(sender, "admin.invalid-xp");
             return;
         }
         var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
         plugin.getLevelManager().addXp(target, stats, xp);
         plugin.getPlayerDataManager().save(target.getUniqueId());
-        sender.sendMessage(plugin.getMessages().parse("admin.xp-given",
-                java.util.Map.of("player", target.getName(), "xp", String.format("%.1f", xp))));
+        send(sender, "admin.xp-given", Map.of("player", target.getName(), "xp", String.format("%.1f", xp)));
     }
 
     private void handleGiveBooster(CommandSender sender, String[] args) {
         if (args.length < 5) {
-            sender.sendMessage("<red>Use: /alkafish givebooster <player> <tipo> <multiplier> <duracao>");
-            sender.sendMessage("<gray>Tipos: FISH_CHANCE, NACAR_MULTIPLIER, SELL_BONUS");
+            send(sender, "admin.givebooster-usage");
+            send(sender, "admin.givebooster-types");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         String type = args[2].toUpperCase();
@@ -238,54 +248,52 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
             multiplier = Double.parseDouble(args[3]);
             duration = Integer.parseInt(args[4]);
         } catch (NumberFormatException e) {
-            sender.sendMessage("<red>Multiplicador/duração inválidos!");
+            send(sender, "admin.invalid-booster-values");
             return;
         }
         if (!java.util.Set.of("FISH_CHANCE", "NACAR_MULTIPLIER", "SELL_BONUS").contains(type)) {
-            sender.sendMessage("<red>Tipo inválido! Use FISH_CHANCE, NACAR_MULTIPLIER ou SELL_BONUS.");
+            send(sender, "admin.invalid-booster-type");
             return;
         }
         plugin.getBoosterService().activate(target, type, multiplier, duration);
-        sender.sendMessage("<green>Booster aplicado em " + target.getName() + "!");
+        send(sender, "admin.booster-applied", Map.of("player", target.getName()));
     }
 
     private void handleGiveNacar(CommandSender sender, String[] args, boolean give) {
         if (args.length < 3) {
-            sender.sendMessage("<red>Use: /alkafish " + (give ? "givenacar" : "removenacar") + " <player> <amount>");
+            send(sender, "admin.givenacar-usage", Map.of("command", give ? "givenacar" : "removenacar"));
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         double amount;
         try {
             amount = Double.parseDouble(args[2]);
         } catch (NumberFormatException e) {
-            sender.sendMessage("<red>Quantia inválida!");
+            send(sender, "admin.invalid-amount");
             return;
         }
-        var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
-        double current = stats.getNacar();
-        if (!give && amount > current) {
-            sender.sendMessage("<red>O jogador não tem nacar suficientes!");
+        if (give) {
+            plugin.getEconomyBridge().deposit(target.getUniqueId(), "nacar", amount);
+        } else if (!plugin.getEconomyBridge().withdraw(target.getUniqueId(), "nacar", amount)) {
+            send(sender, "admin.not-enough-nacar-target");
             return;
         }
-        stats.setNacar(give ? current + amount : current - amount);
-        plugin.getPlayerDataManager().save(target.getUniqueId());
-        sender.sendMessage((give ? "<green>Dados " : "<green>Removidos ") + String.format("%.0f", amount)
-                + " nacar para " + target.getName() + "!");
+        send(sender, give ? "admin.nacar-given" : "admin.nacar-removed",
+                Map.of("amount", String.format("%.0f", amount), "player", target.getName()));
     }
 
     private void handleRepairRod(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Use: /alkafish repairrod <player>");
+            send(sender, "admin.repairrod-usage");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
@@ -294,50 +302,58 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
         if (rod == null) rod = plugin.getRodManager().getDefaultRod();
         if (rod != null) plugin.getRodManager().giveRodItem(target, rod);
         plugin.getPlayerDataManager().save(target.getUniqueId());
-        sender.sendMessage("<green>Vara de " + target.getName() + " reparada!");
+        send(sender, "admin.rod-repaired-admin", Map.of("player", target.getName()));
     }
 
     private void handleBreakRod(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Use: /alkafish breakrod <player>");
+            send(sender, "admin.breakrod-usage");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         var stats = plugin.getPlayerDataManager().getStats(target.getUniqueId());
         stats.setRodBroken(true);
         plugin.getPlayerDataManager().save(target.getUniqueId());
         plugin.getRodManager().removeRodItem(target);
-        sender.sendMessage("<red>Vara de " + target.getName() + " quebrada (para testar reparo).");
+        send(sender, "admin.rod-broken-admin", Map.of("player", target.getName()));
     }
 
     private void handleResetData(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage("<red>Use: /alkafish resetdata <player>");
+            send(sender, "admin.resetdata-usage");
             return;
         }
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getMessages().parse("errors.player-not-found"));
+            send(sender, "errors.player-not-found");
             return;
         }
         plugin.getPlayerDataManager().reset(target.getUniqueId());
         plugin.getRodManager().removeRodItem(target);
-        sender.sendMessage("<green>Dados de pesca de " + target.getName() + " resetados!");
+        send(sender, "admin.data-reset", Map.of("player", target.getName()));
     }
 
     private void sendAdminHelp(CommandSender sender) {
-        sender.sendMessage(plugin.getMessages().parse("admin.help-header"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-reload"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-tournament"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-givexp"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-npc"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-setrod"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-area"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-repairrod"));
-        sender.sendMessage(plugin.getMessages().parse("admin.help-resetdata"));
+        send(sender, "admin.help-header");
+        send(sender, "admin.help-reload");
+        send(sender, "admin.help-tournament");
+        send(sender, "admin.help-givexp");
+        send(sender, "admin.help-npc");
+        send(sender, "admin.help-setrod");
+        send(sender, "admin.help-area");
+        send(sender, "admin.help-repairrod");
+        send(sender, "admin.help-resetdata");
+    }
+
+    private void send(CommandSender sender, String key) {
+        sender.sendMessage(plugin.getMessages().parse(key));
+    }
+
+    private void send(CommandSender sender, String key, Map<String, String> placeholders) {
+        sender.sendMessage(plugin.getMessages().parse(key, placeholders));
     }
 }

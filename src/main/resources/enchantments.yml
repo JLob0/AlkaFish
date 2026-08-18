@@ -104,7 +104,7 @@ enchantments:
       base: 50
       per-level: 30
     commands:
-      - "10.0,give {player} TRIPWIRE_HOOK 1"
+      - "10.0,give {player} tripwire_hook 1"
     messages:
       title: "<yellow>Chave Encontrada!"
       actionbar: ""

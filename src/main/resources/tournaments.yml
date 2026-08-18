@@ -20,13 +20,13 @@ tournaments:
 
   rewards:
     1:
-      - "eco give {player} 5000"
+      - "alkaeconomy give {player} coins 5000"
       - "give {player} diamond 5"
     2:
-      - "eco give {player} 2500"
+      - "alkaeconomy give {player} coins 2500"
       - "give {player} diamond 2"
     3:
-      - "eco give {player} 1000"
+      - "alkaeconomy give {player} coins 1000"
 
   messages:
     start-broadcast: "<gold><bold>🏆 Novo torneio de pesca começando!"

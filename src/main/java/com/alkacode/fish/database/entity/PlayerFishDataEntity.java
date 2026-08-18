@@ -19,6 +19,11 @@ public record PlayerFishDataEntity(
     String rodEnchants,
     String activeClassId,
     String unlockedClasses,
-    double nacar,
-    double nacarNext
+    double rodNacarEarned,
+    double nacarNext,
+    boolean autoUpgradeEnabled,
+    String savedInventory,
+    long totalFishingSeconds,
+    String rodSkinId,
+    boolean autoSellOnFull
 ) {}

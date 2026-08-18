@@ -41,4 +41,10 @@ public final class AlkaEconomyBridge {
     public String format(double amount) {
         return EconomyManager.formatValue(amount);
     }
+
+    /** Top N saldos de uma moeda - consulta direta no banco (jogadores offline entram
+     * também), pensada pra tela de TOP, não pra hot path. */
+    public java.util.List<com.alkacode.economy.storage.EconomyRepository.TopBalanceEntry> getTopBalances(String currency, int limit) {
+        return manager.getTopBalances(currency, limit);
+    }
 }

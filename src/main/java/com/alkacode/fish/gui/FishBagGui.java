@@ -14,7 +14,7 @@ import java.util.List;
 public final class FishBagGui extends FishGui {
 
     public FishBagGui(AlkaFishPlugin plugin, Player player) {
-        super(plugin, player, "🎣 Sacola de Peixes", 6, "alkafish-bag");
+        super(plugin, player, "🎣 Sacola de Peixes", Category.BRAND, 6, "alkafish-bag");
     }
 
     @Override
@@ -24,32 +24,99 @@ public final class FishBagGui extends FishGui {
         List<FishBagEntryEntity> bag = plugin.getFishBagService().getBag(player);
         double totalBagWeight = bag.stream().mapToDouble(FishBagEntryEntity::totalWeight).sum();
 
+        int totalItems = bag.stream().mapToInt(FishBagEntryEntity::amount).sum();
         setItem(4, createItem(Material.BUCKET, "<aqua>📊 Sacola",
-                        "<gray>Peixes: <green>" + bag.stream().mapToInt(FishBagEntryEntity::amount).sum(),
-                        "<gray>Peso total: <green>" + String.format("%.2f kg", totalBagWeight)
-                                + " <gray>/ <green>" + String.format("%.2f", stats.getBagCapacity()) + " kg"),
+                        "<gray>Peixes: <green>" + totalItems + " <gray>/ <green>" + (int) stats.getBagCapacity(),
+                        "<gray>Peso total: <green>" + String.format("%.2f kg", totalBagWeight)),
                 e -> {});
 
-        setItem(49, createItem(Material.EMERALD_BLOCK, "<green>💰 Vender Tudo",
-                        "<gray>Vende todos os peixes da sacola"),
+        // Linha inferior (slots 46-51): ações da sacola, entre os painéis de vidro da
+        // borda (45 e 52/53). Vara e Classes saíram daqui - já têm entrada própria no
+        // menu principal (FishingAreaGui), não precisam duplicar aqui.
+        boolean canUpgradeBag = plugin.getFishBagService().canUpgradeBagLimit(player);
+        double bagUpgradeCost = plugin.getFishBagService().bagUpgradeCost(player);
+        double bagLimitPerLevel = plugin.getConfig().getDouble("fishing-area.bag-upgrade.limit-per-level", 100);
+        setItem(46, createItem(canUpgradeBag ? Material.GOLD_INGOT : Material.IRON_INGOT,
+                        "<yellow>📈 Aumentar Limite",
+                        "<gray>Limite atual: <white>" + (int) stats.getBagCapacity(),
+                        "<gray>Próximo: <white>" + (int) (stats.getBagCapacity() + bagLimitPerLevel)
+                                + " <gray>(+" + (int) bagLimitPerLevel + ")",
+                        "<gray>Custo: <green>" + String.format("%.0f", bagUpgradeCost) + " coins",
+                        "",
+                        canUpgradeBag ? "<yellow>Clique para upar" : "<red>Coins insuficientes"),
                 e -> {
+                    if (plugin.getFishBagService().upgradeBagLimit(player)) {
+                        player.sendMessage(plugin.getMessages().parse("bag.upgraded",
+                                java.util.Map.of("limit", String.valueOf((int) plugin.getPlayerDataManager()
+                                        .getStats(player.getUniqueId()).getBagCapacity()))));
+                        new FishBagGui(plugin, player).open();
+                    } else {
+                        player.sendMessage(plugin.getMessages().parse("bag.upgrade-not-enough-coins"));
+                    }
+                });
+
+        int pendingRewards = plugin.getPendingRewardService().getPending(player).size();
+        setItem(47, createItem(Material.CHEST, "<gold>🎁 Recompensas <yellow>(" + pendingRewards + ")",
+                        "<gray>Itens e chaves de crate ganhos pescando",
+                        "",
+                        "<yellow>Clique para abrir"),
+                e -> new RewardClaimGui(plugin, player).open());
+        setItem(48, createItem(Material.BOOK, "<yellow>📖 Codex de Peixes",
+                        "<gray>Sua coleção de peixes descobertos",
+                        "",
+                        "<yellow>Clique para abrir"),
+                e -> new CodexGui(plugin, player).open());
+        setItem(49, createItem(Material.EMERALD_BLOCK, "<green>💰 Vender Tudo",
+                        "<gray>Vende todos os peixes da sacola",
+                        "",
+                        "<yellow>Clique para vender tudo"),
+                e -> {
+                    if (bag.isEmpty()) {
+                        player.sendMessage(plugin.getMessages().parse("bag.empty"));
+                        return;
+                    }
+                    int count = bag.stream().mapToInt(FishBagEntryEntity::amount).sum();
                     double total = plugin.getFishBagService().sellAll(player);
                     player.sendMessage(plugin.getMessages().parse("bag.sold_all",
-                            java.util.Map.of("price", String.format("%.2f", total))));
+                            java.util.Map.of("count", String.valueOf(count), "price", String.format("%.2f", total))));
+                    String bonusLine = plugin.getFishBagService().getSellBonusLine(player);
+                    if (!bonusLine.isEmpty()) {
+                        player.sendMessage(plugin.getMessages().parse("bag.bonus_line",
+                                java.util.Map.of("bonuses", bonusLine)));
+                    }
                     new FishBagGui(plugin, player).open();
                 });
-        setItem(50, createItem(Material.BOOK, "<yellow>📖 Codex de Peixes"),
-                e -> new CodexGui(plugin, player).open());
-        setItem(51, createItem(Material.FISHING_ROD, "<aqua>🎣 Sua Vara"),
-                e -> new RodGui(plugin, player).open());
-        setItem(52, createItem(Material.LEATHER_CHESTPLATE, "<gold>🛡 Classes"),
-                e -> new ClassGui(plugin, player).open());
-        setItem(53, createItem(Material.BARRIER, "<red>❌ Fechar"),
-                e -> player.closeInventory());
+        // Slot 50: auto-venda ao encher (feature de VIP - via Perk Tree do AlkaVips,
+        // mesmo padrão do auto-upgrade da vara).
+        boolean hasAutoSellPerk = plugin.getAlkaVipsHook() != null
+                && plugin.getAlkaVipsHook().isAvailable()
+                && plugin.getAlkaVipsHook().hasPerk(player.getUniqueId(), "auto-sell-bag-full");
+        if (hasAutoSellPerk) {
+            boolean enabled = stats.isAutoSellOnFull();
+            setItem(50, createItem(enabled ? Material.LIME_DYE : Material.GRAY_DYE,
+                    enabled ? "<green>⚙ Auto-Venda: <bold>ON" : "<gray>⚙ Auto-Venda: <bold>OFF",
+                    "<gray>Vende a sacola inteira sozinha",
+                    "<gray>assim que ela encher.",
+                    "",
+                    "<yellow>Clique para " + (enabled ? "desligar" : "ligar")),
+                    e -> {
+                        plugin.getFishBagService().toggleAutoSellOnFull(player);
+                        new FishBagGui(plugin, player).open();
+                    });
+        } else {
+            setItem(50, createItem(Material.GRAY_DYE, "<gray>⚙ Auto-Venda <dark_gray>[VIP]",
+                    "<gray>Vende a sacola inteira sozinha",
+                    "<gray>assim que ela encher.",
+                    "",
+                    "<red>Perk VIP não desbloqueado."), e -> {});
+        }
 
-        int slot = 9;
+        setItem(51, createItem(Material.ARROW, "<yellow>⬅ Voltar"),
+                e -> new FishingAreaGui(plugin, player).open());
+
+        int slot = 10;
         for (FishBagEntryEntity entry : bag) {
-            if (slot > 44) break;
+            if (slot > 43) break;
             Fish fish = plugin.getFishManager().getFishById(entry.fishId());
             if (fish == null) continue;
             double unitWeight = entry.amount() > 0 ? entry.totalWeight() / entry.amount() : fish.getMinWeight();
@@ -64,16 +131,22 @@ public final class FishBagGui extends FishGui {
                     "<gray>Preço unitário: <green>$" + String.format("%.2f", unitPrice),
                     "<gray>Preço total: <green>$" + String.format("%.2f", totalPrice),
                     "",
-                    "<green>Clique para vender este peixe");
+                    "<yellow>Clique para vender este peixe");
             setItem(slot, item, e -> {
                 double sold = plugin.getFishBagService().sell(player, entry.fishId());
                 player.sendMessage(plugin.getMessages().parse("bag.sold", java.util.Map.of(
                         "amount", String.valueOf(entry.amount()),
                         "fish", fish.getDisplayName(),
                         "price", String.format("%.2f", sold))));
+                String bonusLine = plugin.getFishBagService().getSellBonusLine(player);
+                if (!bonusLine.isEmpty()) {
+                    player.sendMessage(plugin.getMessages().parse("bag.bonus_line",
+                            java.util.Map.of("bonuses", bonusLine)));
+                }
                 new FishBagGui(plugin, player).open();
             });
             slot++;
+            if (slot % 9 == 8) slot += 2;
         }
     }
 

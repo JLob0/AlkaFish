@@ -96,7 +96,8 @@ public final class PlayerDataManager {
                 s.getBagCapacity(), s.getCurrentBagWeight(),
                 s.getRodId(), s.getRodLevel(), s.isRodBroken(),
                 enchants.toString(), s.getActiveClassId(), unlocked,
-                s.getNacar(), s.getNacarNext());
+                s.getRodNacarEarned(), s.getNacarNext(), s.isAutoUpgradeEnabled(), s.getSavedInventory(),
+                s.getTotalFishingSeconds(), s.getRodSkinId(), s.isAutoSellOnFull());
     }
 
     private PlayerFishStats fromEntity(UUID uuid, PlayerFishDataEntity e) {
@@ -113,8 +114,13 @@ public final class PlayerDataManager {
         s.setRodLevel(e.rodLevel());
         s.setRodBroken(e.rodBroken());
         s.setActiveClassId(e.activeClassId());
-        s.setNacar(e.nacar());
+        s.setRodNacarEarned(e.rodNacarEarned());
         s.setNacarNext(e.nacarNext());
+        s.setAutoUpgradeEnabled(e.autoUpgradeEnabled());
+        s.setSavedInventory(e.savedInventory());
+        s.setTotalFishingSeconds(e.totalFishingSeconds());
+        s.setRodSkinId(e.rodSkinId());
+        s.setAutoSellOnFull(e.autoSellOnFull());
         if (e.rodEnchants() != null && !e.rodEnchants().isEmpty()) {
             for (String pair : e.rodEnchants().split(";")) {
                 String[] kv = pair.split(":");

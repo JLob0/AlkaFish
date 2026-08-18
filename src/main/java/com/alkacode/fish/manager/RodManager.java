@@ -93,10 +93,10 @@ public final class RodManager {
     public boolean canUpgrade(Player player, FishingRod current) {
         FishingRod next = getNextRod(current);
         if (next == null) return false;
-        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
         if (coins < next.getUpgradeCostCoins()) return false;
-        return stats.getNacar() >= next.getUpgradeCostNacar();
+        double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
+        return nacar >= next.getUpgradeCostNacar();
     }
 
     public boolean upgradeRod(Player player, FishingRod current) {
@@ -104,9 +104,10 @@ public final class RodManager {
         if (next == null) return false;
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", next.getUpgradeCostCoins());
-        stats.setNacar(stats.getNacar() - next.getUpgradeCostNacar());
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", next.getUpgradeCostNacar());
         stats.setRodId(next.getId());
         stats.setRodLevel(next.getLevel());
+        stats.setRodNacarEarned(0); // vara nova - contador de nacar pescado com ela reinicia
         giveRodItem(player, next);
         plugin.getPlayerDataManager().save(player.getUniqueId());
         player.sendMessage(plugin.getMessages().parse("rod.upgraded",
@@ -114,8 +115,32 @@ public final class RodManager {
         return true;
     }
 
+    /** Tenta upar automaticamente 1 tier se o jogador já tem coins+nacar suficientes
+     * (feature de auto-upgrade, gated por perk VIP - ver toggleAutoUpgrade). */
+    public boolean tryAutoUpgrade(Player player) {
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        if (!stats.isAutoUpgradeEnabled()) return false;
+        // Revalida o perk aqui tambem (nao so na GUI) - se o VIP expirou depois do
+        // jogador ligar o toggle, o auto-upgrade tem que parar de rodar sozinho.
+        if (plugin.getAlkaVipsHook() == null || !plugin.getAlkaVipsHook().isAvailable()
+                || !plugin.getAlkaVipsHook().hasPerk(player.getUniqueId(), "auto-upgrade-rod")) {
+            return false;
+        }
+        FishingRod current = getRodById(stats.getRodId());
+        if (current == null || !canUpgrade(player, current)) return false;
+        boolean upgraded = upgradeRod(player, current);
+        if (upgraded) {
+            player.sendMessage(plugin.getMessages().parse("rod.auto-upgraded"));
+        }
+        return upgraded;
+    }
+
     public boolean canRepair(Player player, FishingRod rod) {
-        return rod != null;
+        if (rod == null) return false;
+        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
+        if (coins < rod.getRepairCostCoins()) return false;
+        double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
+        return nacar >= rod.getRepairCostNacar();
     }
 
     public boolean repairRod(Player player) {
@@ -123,7 +148,8 @@ public final class RodManager {
         FishingRod rod = getRodById(stats.getRodId());
         if (rod == null) rod = getDefaultRod();
         if (rod == null) return false;
-        // Reparo é gratuito e sempre funciona (não depende de coins/nacar/economia).
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", rod.getRepairCostCoins());
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", rod.getRepairCostNacar());
         stats.setRodBroken(false);
         giveRodItem(player, rod);
         plugin.getPlayerDataManager().save(player.getUniqueId());
@@ -131,10 +157,54 @@ public final class RodManager {
         return true;
     }
 
+    /** Custo em nacar do próximo tier - denominador dinâmico da barra {nacar_has}/{nacar_next}
+     * no lore da vara (mostra progresso real até dar pra upar, não um valor fixo qualquer). */
+    public double nextUpgradeCostNacar(FishingRod current) {
+        FishingRod next = getNextRod(current);
+        return next != null ? next.getUpgradeCostNacar() : 0;
+    }
+
+    /** Liga/desliga o auto-upgrade do jogador (gated por perk VIP fora daqui). */
+    public void toggleAutoUpgrade(Player player) {
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        stats.setAutoUpgradeEnabled(!stats.isAutoUpgradeEnabled());
+        plugin.getPlayerDataManager().save(player.getUniqueId());
+    }
+
+    /** Todas as varas com nível <= o nível atual do jogador (já "passadas" na progressão -
+     * elegíveis pra virar skin visual da vara equipada). */
+    public List<FishingRod> getUnlockedRods(FishingRod current) {
+        List<FishingRod> out = new ArrayList<>();
+        for (FishingRod r : rodsByLevel) {
+            if (r.getLevel() <= current.getLevel()) out.add(r);
+        }
+        return out;
+    }
+
+    /** Custom-model-data a usar na exibição: a skin escolhida (se ainda válida - nível <=
+     * vara real) ou 0 pra usar a própria skin da vara real. */
+    private int resolveSkinCustomModelData(com.alkacode.fish.model.PlayerFishStats stats, FishingRod rod) {
+        String skinId = stats.getRodSkinId();
+        if (skinId == null || skinId.isEmpty()) return 0;
+        FishingRod skin = rodsById.get(skinId);
+        if (skin == null || skin.getLevel() > rod.getLevel()) return 0;
+        return skin.getCustomModelData();
+    }
+
+    /** Define a skin visual da vara (id de uma vara já desbloqueada) e atualiza o item na
+     * mão na hora. Id vazio/null reseta pra skin própria da vara atual. */
+    public void setRodSkin(Player player, String skinId) {
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        stats.setRodSkinId(skinId);
+        plugin.getPlayerDataManager().save(player.getUniqueId());
+        refreshRodItem(player);
+    }
+
     /** Dá a vara no slot configurado (rod-slot). */
     public void giveRodItem(Player player, FishingRod rod) {
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-        ItemStack item = rod.toItemStack(plugin, stats.getRodEnchantLevels(), stats.getNacar(), stats.getNacarNext());
+        ItemStack item = rod.toItemStack(plugin, stats.getRodEnchantLevels(),
+                stats.getRodNacarEarned(), nextUpgradeCostNacar(rod), resolveSkinCustomModelData(stats, rod));
         int slot = getRodSlot();
         player.getInventory().setItem(slot, item);
         // Sem isso a vara ficava SO na hotbar, nao necessariamente na mao - se o jogador
@@ -142,6 +212,25 @@ public final class RodManager {
         // segurar um item de vara de verdade) e isHoldingRod() no ciclo AFK falhava,
         // derrubando a sessao no primeiro tick.
         player.getInventory().setHeldItemSlot(slot);
+    }
+
+    /** Regrava só o conteúdo (lore/nacar) da vara já equipada, sem forçar seleção de slot -
+     * usado depois de cada captura pra {nacar_has}/{nacar_next} no tooltip não ficar
+     * congelado no valor de quando a vara foi dada (giveRodItem só roda em upar/reparar/
+     * entrar na área, não a cada peixe). */
+    public void refreshRodItem(Player player) {
+        int slot = getRodSlot();
+        ItemStack current = player.getInventory().getItem(slot);
+        if (current == null || !current.hasItemMeta()) return;
+        if (!current.getItemMeta().getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "alkafish_rod_id"))) return;
+
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        FishingRod rod = getRodById(stats.getRodId());
+        if (rod == null) return;
+        ItemStack updated = rod.toItemStack(plugin, stats.getRodEnchantLevels(),
+                stats.getRodNacarEarned(), nextUpgradeCostNacar(rod), resolveSkinCustomModelData(stats, rod));
+        player.getInventory().setItem(slot, updated);
     }
 
     /** Remove a vara do slot configurado (rod-slot) se ela for do AlkaFish. */

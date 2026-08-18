@@ -7,7 +7,6 @@ import com.alkacode.fish.gui.EnchantGui;
 import com.alkacode.fish.gui.FishBagGui;
 import com.alkacode.fish.gui.FishingAreaGui;
 import com.alkacode.fish.gui.RodGui;
-import com.alkacode.fish.gui.SellGui;
 import com.alkacode.fish.gui.TournamentGui;
 import com.alkacode.fish.model.PlayerFishStats;
 import org.bukkit.command.Command;
@@ -43,7 +42,7 @@ public final class FishCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "sair", "exit", "voltar" -> plugin.getFishingAreaManager().teleportExit(player);
             case "bag", "mochila" -> new FishBagGui(plugin, player).open();
-            case "sell", "vender" -> new SellGui(plugin, player).open();
+            case "sell", "vender" -> new FishBagGui(plugin, player).open();
             case "codex", "coleção" -> new CodexGui(plugin, player).open();
             case "tournament", "torneio" -> new TournamentGui(plugin, player).open();
             case "stats", "estatísticas" -> showStats(player);

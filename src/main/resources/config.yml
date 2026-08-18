@@ -17,13 +17,13 @@ tournaments:
   sell-multiplier-during-tournament: 1.5
   rewards:
     1:
-      - "eco give {player} 5000"
+      - "alkaeconomy give {player} coins 5000"
       - "give {player} diamond 5"
     2:
-      - "eco give {player} 2500"
+      - "alkaeconomy give {player} coins 2500"
       - "give {player} diamond 2"
     3:
-      - "eco give {player} 1000"
+      - "alkaeconomy give {player} coins 1000"
 
 integrations:
   alkashop-sell-enabled: true
@@ -43,6 +43,7 @@ rods:
   evolute-crescent: true
   sum-evolute: true
   rod-slot: 0
+  menu-slot: 4
 
 classes:
   enabled: true
@@ -59,6 +60,18 @@ fishing-area:
   # Distância máxima (blocos) entre o jogador e o hook antes de recolher a linha
   # automaticamente. -1 desativa o limite (pode andar com a linha lançada).
   max-fishing-distance: 50
+  # Limite INICIAL de itens (soma de todas as quantias) que a Sacola de Peixes aguenta -
+  # cada jogador começa com esse valor, mas pode upar pagando (ver bag-upgrade abaixo).
+  # Ao atingir o limite atual do jogador, o peixe escapa e a linha recolhe sozinha (se
+  # tava no AFK) até vender alguns peixes. 0 ou negativo desativa o limite.
+  max-bag-items: 500
+  bag-upgrade:
+    # Quanto cada compra soma no limite do jogador.
+    limit-per-level: 100
+    # Custo em coins da 1ª compra - cresce exponencialmente a cada nível já comprado.
+    base-cost-coins: 5000.0
+    # Multiplicador de custo por nível já comprado (1.2 = +20% a cada upgrade).
+    cost-growth: 1.2
   time-restrict:
     enabled: false
     gmt-offset: -3

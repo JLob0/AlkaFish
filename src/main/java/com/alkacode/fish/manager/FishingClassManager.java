@@ -125,7 +125,8 @@ public final class FishingClassManager {
         if (!fc.getPermission().isEmpty() && !player.hasPermission(fc.getPermission())) return false;
         double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
         if (coins < fc.getPriceCoins()) return false;
-        return stats.getNacar() >= fc.getPriceNacar();
+        double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
+        return nacar >= fc.getPriceNacar();
     }
 
     public void upgradeClass(Player player, String classId) {
@@ -135,7 +136,7 @@ public final class FishingClassManager {
 
         if (!stats.getUnlockedClasses().contains(classId)) {
             plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", fc.getPriceCoins());
-            stats.setNacar(stats.getNacar() - fc.getPriceNacar());
+            plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", fc.getPriceNacar());
             stats.getUnlockedClasses().add(classId);
         }
         equipClass(player, classId);
@@ -156,9 +157,27 @@ public final class FishingClassManager {
                 player.addPotionEffect(new PotionEffect(effect.type(), Integer.MAX_VALUE, effect.level() - 1, false, false));
             }
         }
+        giveClassArmor(player, fc);
         plugin.getPlayerDataManager().save(player.getUniqueId());
         player.sendMessage(plugin.getMessages().parse("class.equipped",
                 java.util.Map.of("class", fc.getDisplayName())));
+    }
+
+    /** Reaplica efeitos+armadura da classe ativa do jogador sem custo/mensagem - usado ao
+     * reentrar na área de pesca, já que o set (dado só visualmente dentro da área) não
+     * sobrevive ao saveAndClearInventory/restoreInventory do ciclo de entrada/saída. */
+    public void reapplyActiveClass(Player player) {
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        String classId = stats.getActiveClassId();
+        if (classId == null || classId.isEmpty()) return;
+        FishingClass fc = classes.get(classId);
+        if (fc == null) return;
+        for (FishingClass.ClassEffect effect : fc.getEffects()) {
+            if (effect.type() != null) {
+                player.addPotionEffect(new PotionEffect(effect.type(), Integer.MAX_VALUE, effect.level() - 1, false, false));
+            }
+        }
+        giveClassArmor(player, fc);
     }
 
     public void clearClassEffects(Player player) {
@@ -167,6 +186,61 @@ public final class FishingClassManager {
                 if (effect.type() != null) player.removePotionEffect(effect.type());
             }
         }
+        removeClassArmor(player);
+    }
+
+    /** Veste um set de couro colorido com a cor da classe (só visual/cosmético - os
+     * bônus reais já vêm dos potion effects). Como o jogador entra na área sem itens
+     * (saveAndClearInventory), esse set só existe enquanto ele estiver lá dentro. */
+    private void giveClassArmor(Player player, FishingClass fc) {
+        if (fc.getArmorColor() == null) return;
+        var inv = player.getInventory();
+        inv.setHelmet(classArmorPiece(org.bukkit.Material.LEATHER_HELMET, fc));
+        inv.setChestplate(classArmorPiece(org.bukkit.Material.LEATHER_CHESTPLATE, fc));
+        inv.setLeggings(classArmorPiece(org.bukkit.Material.LEATHER_LEGGINGS, fc));
+        inv.setBoots(classArmorPiece(org.bukkit.Material.LEATHER_BOOTS, fc));
+    }
+
+    private org.bukkit.inventory.ItemStack classArmorPiece(org.bukkit.Material material, FishingClass fc) {
+        org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(material);
+        item.editMeta(meta -> {
+            meta.displayName(com.alkacode.fish.util.FishUtil.parse("<white>" + fc.getDisplayName()));
+            meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "class_armor"),
+                    org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+            if (meta instanceof org.bukkit.inventory.meta.LeatherArmorMeta leather) {
+                leather.setColor(fc.getArmorColor());
+            }
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("<gray>Set de pesca da classe");
+            lore.add("");
+            if (fc.getFishChanceBonus() > 0) {
+                lore.add("<gray>❘ Chance de peixe melhor: <green>+" + String.format("%.0f", fc.getFishChanceBonus()) + "%");
+            }
+            if (fc.getCoinBonus() > 0) {
+                lore.add("<gray>❘ Nacar ao pescar: <aqua>+" + String.format("%.0f", fc.getCoinBonus()) + "%");
+            }
+            if (fc.getSellBonus() > 0) {
+                lore.add("<gray>❘ Venda de peixes: <yellow>+" + String.format("%.0f", fc.getSellBonus()) + "%");
+            }
+            meta.lore(lore.stream().map(com.alkacode.fish.util.FishUtil::parse).toList());
+        });
+        return item;
+    }
+
+    /** Remove só as peças de armadura marcadas como set de classe - nunca mexe em
+     * armadura de verdade do jogador (não deveria ter nenhuma na área, mas por garantia). */
+    private void removeClassArmor(Player player) {
+        var inv = player.getInventory();
+        if (isClassArmor(inv.getHelmet())) inv.setHelmet(null);
+        if (isClassArmor(inv.getChestplate())) inv.setChestplate(null);
+        if (isClassArmor(inv.getLeggings())) inv.setLeggings(null);
+        if (isClassArmor(inv.getBoots())) inv.setBoots(null);
+    }
+
+    private boolean isClassArmor(org.bukkit.inventory.ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(plugin, "class_armor"));
     }
 
     public double getFishChanceBonus(Player player) {
@@ -182,5 +256,19 @@ public final class FishingClassManager {
     public double getSellBonus(Player player) {
         FishingClass fc = classes.get(plugin.getPlayerDataManager().getStats(player.getUniqueId()).getActiveClassId());
         return fc != null ? fc.getSellBonus() : 0;
+    }
+
+    /** Sufixo pronto pra colar em msg de captura/actionbar mostrando os bônus da classe
+     * ativa (estilo yPesca: "Você pescou... +5% de Chance"). Vazio se não tem classe ou
+     * os bônus são todos 0. */
+    public String getBonusSuffix(Player player) {
+        FishingClass fc = classes.get(plugin.getPlayerDataManager().getStats(player.getUniqueId()).getActiveClassId());
+        if (fc == null) return "";
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        if (fc.getFishChanceBonus() > 0) parts.add("<green>+" + String.format("%.0f", fc.getFishChanceBonus()) + "% Chance");
+        if (fc.getCoinBonus() > 0) parts.add("<aqua>+" + String.format("%.0f", fc.getCoinBonus()) + "% Nácar");
+        if (fc.getSellBonus() > 0) parts.add("<yellow>+" + String.format("%.0f", fc.getSellBonus()) + "% Venda");
+        if (parts.isEmpty()) return "";
+        return " <gray>(" + String.join("<gray>, ", parts) + "<gray>)";
     }
 }

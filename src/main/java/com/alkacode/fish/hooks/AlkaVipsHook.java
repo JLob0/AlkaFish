@@ -12,6 +12,7 @@ public final class AlkaVipsHook extends HookBase {
 
     private Object api;
     private Method hasVip;
+    private Method hasPerk;
 
     public AlkaVipsHook(AlkaFishPlugin plugin) {
         super(plugin);
@@ -22,6 +23,7 @@ public final class AlkaVipsHook extends HookBase {
             if (registration == null) return;
             this.api = registration.getProvider();
             this.hasVip = apiClass.getMethod("hasVip", UUID.class, String.class);
+            this.hasPerk = apiClass.getMethod("hasPerk", UUID.class, String.class);
         } catch (Throwable e) {
             plugin.getLogger().warning("AlkaVips hook falhou: " + e.getMessage());
         }
@@ -45,6 +47,20 @@ public final class AlkaVipsHook extends HookBase {
             }
         } catch (Throwable ignored) {}
         return CompletableFuture.completedFuture(false);
+    }
+
+    /** true se o jogador tiver o perk desbloqueado na VIP Perk Tree (perktree.yml do AlkaVips). */
+    public boolean hasPerk(UUID uuid, String perkId) {
+        try {
+            if (api != null && hasPerk != null) {
+                Object result = hasPerk.invoke(api, uuid, perkId);
+                if (result instanceof CompletableFuture<?> cf) {
+                    Object value = cf.join();
+                    return value instanceof Boolean b && b;
+                }
+            }
+        } catch (Throwable ignored) {}
+        return false;
     }
 
     /** Bônus de sorte de pesca da VIP "fishing_luck" (configurável por vip id). */

@@ -31,7 +31,7 @@ public final class FishMessages {
     }
 
     private String prefix() {
-        return config.getString("prefix", "<dark_aqua>[AlkaFish] ");
+        return config.getString("prefix", "<gray>[<gradient:#55FFAA:#00AA55>AlkaFish</gradient>]</gray> ");
     }
 
     public Component parse(String key, Map<String, String> placeholders) {

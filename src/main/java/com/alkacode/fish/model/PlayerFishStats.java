@@ -16,6 +16,9 @@ public class PlayerFishStats {
     private String biggestFishId;
     private double totalWeight;
     private final Map<String, Integer> caughtByFishId;
+    /** Limite de ITENS (soma de amount) que a Fish Bag aguenta - upgradável com coins
+     * (ver FishBagService#upgradeBagLimit). Não é peso: peixe lendário pesa milhares de
+     * kg, um limite em peso travaria ele pra sempre. */
     private double bagCapacity;
     private double currentBagWeight;
 
@@ -26,8 +29,23 @@ public class PlayerFishStats {
     private final Map<String, Integer> rodEnchantLevels = new HashMap<>();
     private String activeClassId = "";
     private final Set<String> unlockedClasses = new HashSet<>();
-    private double nacar = 0;
+    /** Nacar pescado com a vara ATUAL (não é saldo - saldo real fica na AlkaEconomy).
+     * Zera a cada upgrade de vara - mostra o "quanto essa vara já rendeu". */
+    private double rodNacarEarned = 0;
     private double nacarNext = 100;
+    private boolean autoUpgradeEnabled = false;
+    /** Id da vara escolhida como skin visual (item custom do ItemsAdder) - vazio = usa a
+     * skin da própria vara atual. Só pode apontar pra uma vara de nível <= rodLevel (já
+     * desbloqueada); as stats reais (peso/delay/quebra) sempre vêm da vara real, nunca da skin. */
+    private String rodSkinId = "";
+    /** Perk VIP: vende a sacola inteira sozinha assim que encher (em vez de escapar o
+     * peixe/parar a pesca) - gated pelo Perk Tree do AlkaVips, mesmo padrão do auto-upgrade. */
+    private boolean autoSellOnFull = false;
+    /** Inventário salvo ao entrar na área de pesca (InventoryCodec) - persistido no banco
+     * pra sobreviver um restart do servidor com o jogador dentro. Vazio = nada salvo. */
+    private String savedInventory = "";
+    /** Tempo total (lifetime, em segundos) que o jogador já passou pescando - pro TOP de tempo. */
+    private long totalFishingSeconds = 0;
 
     public PlayerFishStats(UUID playerUuid) {
         this.playerUuid = playerUuid;
@@ -38,7 +56,7 @@ public class PlayerFishStats {
         this.biggestFishId = "";
         this.totalWeight = 0;
         this.caughtByFishId = new HashMap<>();
-        this.bagCapacity = 50.0;
+        this.bagCapacity = 500.0;
         this.currentBagWeight = 0;
     }
 
@@ -73,10 +91,20 @@ public class PlayerFishStats {
     public String getActiveClassId() { return activeClassId; }
     public void setActiveClassId(String activeClassId) { this.activeClassId = activeClassId; }
     public Set<String> getUnlockedClasses() { return unlockedClasses; }
-    public double getNacar() { return nacar; }
-    public void setNacar(double nacar) { this.nacar = nacar; }
+    public double getRodNacarEarned() { return rodNacarEarned; }
+    public void setRodNacarEarned(double rodNacarEarned) { this.rodNacarEarned = rodNacarEarned; }
     public double getNacarNext() { return nacarNext; }
     public void setNacarNext(double nacarNext) { this.nacarNext = nacarNext; }
+    public boolean isAutoUpgradeEnabled() { return autoUpgradeEnabled; }
+    public void setAutoUpgradeEnabled(boolean autoUpgradeEnabled) { this.autoUpgradeEnabled = autoUpgradeEnabled; }
+    public String getRodSkinId() { return rodSkinId; }
+    public void setRodSkinId(String rodSkinId) { this.rodSkinId = rodSkinId == null ? "" : rodSkinId; }
+    public boolean isAutoSellOnFull() { return autoSellOnFull; }
+    public void setAutoSellOnFull(boolean autoSellOnFull) { this.autoSellOnFull = autoSellOnFull; }
+    public String getSavedInventory() { return savedInventory; }
+    public void setSavedInventory(String savedInventory) { this.savedInventory = savedInventory == null ? "" : savedInventory; }
+    public long getTotalFishingSeconds() { return totalFishingSeconds; }
+    public void setTotalFishingSeconds(long totalFishingSeconds) { this.totalFishingSeconds = totalFishingSeconds; }
 
     public void addCatch(Fish fish, double length, double weight) {
         totalCaught++;

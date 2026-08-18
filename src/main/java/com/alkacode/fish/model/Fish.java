@@ -18,6 +18,7 @@ public class Fish {
     private final double minWeight;
     private final double maxWeight;
     private final double basePrice;
+    private final double nacarPrice;
     private final String itemsAdderId;
     private final int customModelData;
     private final boolean requiresNight;
@@ -28,7 +29,7 @@ public class Fish {
 
     public Fish(String id, String displayName, FishRarity rarity, List<String> biomes,
                 double minLength, double maxLength, double minWeight, double maxWeight,
-                double basePrice, String itemsAdderId, int customModelData,
+                double basePrice, double nacarPrice, String itemsAdderId, int customModelData,
                 boolean requiresNight, boolean requiresRain, int minDepth,
                 double xpReward, List<String> lore) {
         this.id = id;
@@ -40,6 +41,7 @@ public class Fish {
         this.minWeight = minWeight;
         this.maxWeight = maxWeight;
         this.basePrice = basePrice;
+        this.nacarPrice = nacarPrice;
         this.itemsAdderId = itemsAdderId;
         this.customModelData = customModelData;
         this.requiresNight = requiresNight;
@@ -58,6 +60,7 @@ public class Fish {
     public double getMinWeight() { return minWeight; }
     public double getMaxWeight() { return maxWeight; }
     public double getBasePrice() { return basePrice; }
+    public double getNacarPrice() { return nacarPrice; }
     public String getItemsAdderId() { return itemsAdderId; }
     public int getCustomModelData() { return customModelData; }
     public boolean isRequiresNight() { return requiresNight; }

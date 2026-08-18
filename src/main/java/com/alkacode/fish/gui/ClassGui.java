@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 public final class ClassGui extends FishGui {
 
     public ClassGui(AlkaFishPlugin plugin, Player player) {
-        super(plugin, player, "🛡 Classes de Pesca", 3, "alkafish-class");
+        super(plugin, player, "🛡 Classes de Pesca", Category.PROGRESSION, 3, "alkafish-class");
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.alkacode.fish.placeholder;
 
 import com.alkacode.fish.AlkaFishPlugin;
 import com.alkacode.fish.model.PlayerFishStats;
+import com.alkacode.fish.util.ProgressBarUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ public final class AlkaFishExpansion extends PlaceholderExpansion {
                 yield rod != null ? rod.getDisplayName() : "Nenhuma";
             }
             case "rod_broken" -> stats.isRodBroken() ? "<red>Quebrada" : "<green>OK";
-            case "nacar" -> String.format("%.0f", stats.getNacar());
+            case "nacar" -> String.format("%.0f", plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar"));
             case "nacar_next" -> String.format("%.0f", stats.getNacarNext());
             case "class" -> {
                 var fc = plugin.getFishingClassManager().getClass(stats.getActiveClassId());
@@ -73,6 +74,11 @@ public final class AlkaFishExpansion extends PlaceholderExpansion {
                 yield b != null ? String.format("%.0f", b.getMultiplier()) : "0";
             }
             case "total_fished" -> String.valueOf(stats.getTotalCaught());
+            case "progress" -> {
+                double cur = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
+                double next = stats.getNacarNext();
+                yield ProgressBarUtil.create(cur, next, 20, '■', "<aqua>", "<dark_gray>");
+            }
             case "rod_weight" -> {
                 var rod = plugin.getRodManager().getRodById(stats.getRodId());
                 yield rod != null ? String.format("%.0f", rod.getSupportedWeight()) : "0";

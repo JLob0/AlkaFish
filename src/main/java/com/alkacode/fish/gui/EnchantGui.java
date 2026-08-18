@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 public final class EnchantGui extends FishGui {
 
     public EnchantGui(AlkaFishPlugin plugin, Player player) {
-        super(plugin, player, "✨ Encantamentos", 3, "alkafish-enchant");
+        super(plugin, player, "✨ Encantamentos", Category.PROGRESSION, 3, "alkafish-enchant");
     }
 
     @Override
@@ -40,7 +40,7 @@ public final class EnchantGui extends FishGui {
                 if (fMaxed) return;
                 if (fCan) {
                     plugin.getEnchantmentManager().upgradeEnchantment(player, enchantId);
-                    player.closeInventory();
+                    refresh();
                 } else {
                     player.sendMessage(plugin.getMessages().parse("rod.not-enough-nacar",
                             java.util.Map.of("cost", String.valueOf(cost))));

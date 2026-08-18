@@ -82,8 +82,18 @@ public class FishingRod {
 
     /** Monta o ItemStack da vara com PDC e lore processada. */
     public ItemStack toItemStack(AlkaFishPlugin plugin, Map<String, Integer> enchants, double nacarHas, double nacarNext) {
+        return toItemStack(plugin, enchants, nacarHas, nacarNext, 0);
+    }
+
+    /** Mesma coisa, mas com o custom-model-data de OUTRA vara já desbloqueada (skin visual
+     * escolhida no sub-menu de skins) - nome/lore/PDC continuam sendo os da vara real, só
+     * a textura (item custom do ItemsAdder) muda. {@code skinCustomModelData} <= 0 usa a
+     * própria skin da vara. */
+    public ItemStack toItemStack(AlkaFishPlugin plugin, Map<String, Integer> enchants, double nacarHas, double nacarNext,
+                                  int skinCustomModelData) {
         ItemStack item = new ItemStack(material);
-        if (customModelData > 0) item.editMeta(m -> m.setCustomModelData(customModelData));
+        int cmd = skinCustomModelData > 0 ? skinCustomModelData : customModelData;
+        if (cmd > 0) item.editMeta(m -> m.setCustomModelData(cmd));
 
         ItemStack finalItem = item;
         finalItem.editMeta(meta -> {

@@ -1,24 +1,37 @@
-# Recompensas ao pescar com varas
+# Recompensas ao pescar com varas.
+#
+# items: lista de {material, amount} - NUNCA vai direto pro inventário, fica pendente
+#   na aba "Recompensas" da Sacola de Peixes até o jogador clicar pra reivindicar.
+# coins/nacar: depositados na hora (moeda real da AlkaEconomy, não precisa reivindicar).
+# crate-id/crate-key-amount: key de crate do AlkaCrates - também fica pendente até
+#   reivindicar. crate-id precisa existir configurado no AlkaCrates (crates/*.yml de lá).
+# commands: legado, dispara na hora via console (broadcasts/efeitos, não itens/dinheiro).
 
 rewards:
   common_reward:
     display-name: "<gray>Recompensa Comum"
-    commands:
-      - "give {player} COD 1"
+    items:
+      - {material: COD, amount: 1}
     messages:
-      actionbar: "<gray>Você ganhou um bônus ao pescar!"
+      actionbar: "<gray>Você ganhou uma recompensa! Veja na sua Sacola de Peixes."
   rare_reward:
     display-name: "<blue>Recompensa Rara"
-    commands:
-      - "give {player} SALMON 1"
-      - "eco give {player} 50"
+    items:
+      - {material: SALMON, amount: 1}
+    coins: 50
     messages:
-      actionbar: "<blue>Você ganhou uma recompensa rara!"
+      actionbar: "<blue>Você ganhou uma recompensa rara! Veja na sua Sacola de Peixes."
   legendary_reward:
     display-name: "<gold>Recompensa Lendária"
-    commands:
-      - "give {player} DIAMOND 1"
-      - "eco give {player} 500"
+    items:
+      - {material: DIAMOND, amount: 1}
+    coins: 500
     messages:
       title: "<gold>Recompensa Lendária!"
-      actionbar: "<gold>Você ganhou uma recompensa lendária ao pescar!"
+      actionbar: "<gold>Você ganhou uma recompensa lendária! Veja na sua Sacola de Peixes."
+  chave_pesca:
+    display-name: "<aqua>Chave de Pesca"
+    crate-id: pesca
+    crate-key-amount: 1
+    messages:
+      actionbar: "<aqua>Você encontrou uma Chave de Pesca! Veja na sua Sacola de Peixes."

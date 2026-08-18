@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 public final class TournamentGui extends FishGui {
 
     public TournamentGui(AlkaFishPlugin plugin, Player player) {
-        super(plugin, player, "🏆 Torneio de Pesca", 3, "alkafish-tournament");
+        super(plugin, player, "🏆 Torneio de Pesca", Category.HIGHLIGHT, 3, "alkafish-tournament");
     }
 
     @Override
@@ -22,9 +22,25 @@ public final class TournamentGui extends FishGui {
             setItem(13, createItem(Material.BARRIER, "<red>Nenhum Torneio Ativo",
                     "<gray>Aguarde o próximo torneio!"), e -> {});
         } else {
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("<gray>Tempo restante: <yellow>" + tournament.getTimeLeftFormatted());
+            lore.add("<gray>Tipo: <yellow>" + tournament.getType().getDescription());
+            lore.add("");
+            lore.add("<gold>Top 3 ao vivo:");
+            var top3 = plugin.getTournamentManager().getTopScores(3);
+            if (top3.isEmpty()) {
+                lore.add("<gray>Ninguém pontuou ainda.");
+            } else {
+                String[] medals = {"<yellow>🥇", "<gray>🥈", "<gold>🥉"};
+                for (int i = 0; i < top3.size(); i++) {
+                    var entry = top3.get(i);
+                    var offline = org.bukkit.Bukkit.getOfflinePlayer(entry.uuid());
+                    String name = offline.getName() != null ? offline.getName() : "Desconhecido";
+                    lore.add(medals[i] + " <white>" + name + " <gray>- <aqua>" + String.format("%.2f", entry.score()));
+                }
+            }
             setItem(13, createItem(Material.TROPICAL_FISH, "<gold>" + tournament.getType().getDisplayName(),
-                            "<gray>Tempo restante: <yellow>" + tournament.getTimeLeftFormatted(),
-                            "<gray>Tipo: <yellow>" + tournament.getType().getDescription()),
+                            lore.toArray(new String[0])),
                     e -> {});
 
             int pos = plugin.getTournamentManager().getPlayerPosition(player);

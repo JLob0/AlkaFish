@@ -6,13 +6,37 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-/** Base comum das GUIs do AlkaFish: título com gradiente e painel preto. */
+/** Base comum das GUIs do AlkaFish: título com gradiente+bold (categoria do
+ * MestreDEV-STYLE-GUIDE.md) e painel preto. */
 public abstract class FishGui extends BaseGui {
 
     protected final AlkaFishPlugin plugin;
 
+    /** Categorias de cor do style guide da rede - cada GUI escolhe a que combina com o que faz. */
+    protected enum Category {
+        /** Verde - marca/hub/ação rotineira. */
+        BRAND("#55FFAA", "#00AA55"),
+        /** Roxo - progressão (upar, evoluir, coletar). */
+        PROGRESSION("#AA55FF", "#5500AA"),
+        /** Dourado - ranking/destaque (torneio, recompensas). */
+        HIGHLIGHT("#FFAA00", "#FFE055");
+
+        final String start;
+        final String end;
+
+        Category(String start, String end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+
     protected FishGui(AlkaFishPlugin plugin, Player player, String title, int rows, String id) {
-        super(plugin, player, "<gradient:#0fa3b1:#b5e2fa>" + title, rows, id);
+        this(plugin, player, title, Category.BRAND, rows, id);
+    }
+
+    protected FishGui(AlkaFishPlugin plugin, Player player, String title, Category category, int rows, String id) {
+        super(plugin, player, "<gradient:" + category.start + ":" + category.end + "><bold>"
+                + title + "</bold></gradient>", rows, id);
         this.plugin = plugin;
     }
 

@@ -1,0 +1,14 @@
+# Raridades que recebem aviso especial ao pescar: título+subtitle na tela do jogador
+# (meio da tela) + broadcast pro servidor. Raridades não listadas aqui pescam normal,
+# sem aviso extra - pra adicionar mais uma, é só copiar o bloco com a raridade certa
+# (COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC).
+
+tiers:
+  LEGENDARY:
+    title: "<gold><bold>⭐ LENDÁRIO!"
+    subtitle: "<yellow>Você pescou algo incrível!"
+    broadcast: "<gold><bold>🏆 {player} pescou um {fish} LENDÁRIO de {length}cm!"
+  MYTHIC:
+    title: "<red><bold>💀 MÍTICO!"
+    subtitle: "<gold>Uma lenda das profundezas apareceu!"
+    broadcast: "<red><bold>🐉 {player} pescou um {fish} MÍTICO de {length}cm! INACREDITÁVEL!"

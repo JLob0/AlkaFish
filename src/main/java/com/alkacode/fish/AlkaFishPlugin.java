@@ -8,13 +8,14 @@ import com.alkacode.fish.command.FishCommand;
 import com.alkacode.fish.command.SairCommand;
 import com.alkacode.fish.database.repository.FishBagRepository;
 import com.alkacode.fish.database.repository.FishCaughtRepository;
+import com.alkacode.fish.database.repository.PendingRewardRepository;
 import com.alkacode.fish.database.repository.PlayerFishDataRepository;
 import com.alkacode.fish.database.repository.TournamentRecordRepository;
 import com.alkacode.fish.gui.CodexGui;
 import com.alkacode.fish.gui.FishBagGui;
-import com.alkacode.fish.gui.SellGui;
 import com.alkacode.fish.gui.TournamentGui;
 import com.alkacode.fish.hooks.AlkaClansHook;
+import com.alkacode.fish.hooks.AlkaCratesHook;
 import com.alkacode.fish.hooks.AlkaDropHook;
 import com.alkacode.fish.hooks.AlkaEconomyBridge;
 import com.alkacode.fish.hooks.AlkaRankUpHook;
@@ -42,10 +43,12 @@ import com.alkacode.fish.manager.PlayerDataManager;
 import com.alkacode.fish.manager.RewardManager;
 import com.alkacode.fish.manager.RodManager;
 import com.alkacode.fish.manager.TensionGameManager;
+import com.alkacode.fish.manager.TierManager;
 import com.alkacode.fish.manager.TournamentManager;
 import com.alkacode.fish.placeholder.AlkaFishExpansion;
 import com.alkacode.fish.service.BoosterService;
 import com.alkacode.fish.service.FishBagService;
+import com.alkacode.fish.service.PendingRewardService;
 import com.alkacode.fish.task.FishingTask;
 import org.bukkit.Bukkit;
 
@@ -72,13 +75,16 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     private NpcManager npcManager;
     private FishingAreaManager fishingAreaManager;
     private RewardManager rewardManager;
+    private TierManager tierManager;
 
     private PlayerFishDataRepository playerFishDataRepository;
     private FishCaughtRepository fishCaughtRepository;
     private TournamentRecordRepository tournamentRecordRepository;
     private FishBagRepository fishBagRepository;
+    private PendingRewardRepository pendingRewardRepository;
 
     private FishBagService fishBagService;
+    private PendingRewardService pendingRewardService;
     private BoosterService boosterService;
     private FishingTask fishingTask;
     private FishingListener fishingListener;
@@ -96,6 +102,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     private WorldGuardHook worldGuardHook;
     private McMMOHook mcMMOHook;
     private WorldEditHook worldEditHook;
+    private AlkaCratesHook alkaCratesHook;
 
     @Override
     protected void onPluginEnable() {
@@ -121,6 +128,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         this.fishCaughtRepository = new FishCaughtRepository(apiCore.getDatabase());
         this.tournamentRecordRepository = new TournamentRecordRepository(apiCore.getDatabase());
         this.fishBagRepository = new FishBagRepository(apiCore.getDatabase());
+        this.pendingRewardRepository = new PendingRewardRepository(apiCore.getDatabase());
         createTables();
 
         this.economyBridge = new AlkaEconomyBridge();
@@ -138,8 +146,10 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         this.npcManager = new NpcManager(this);
         this.fishingAreaManager = new FishingAreaManager(this);
         this.rewardManager = new RewardManager(this);
+        this.tierManager = new TierManager(this);
 
         this.fishBagService = new FishBagService(this);
+        this.pendingRewardService = new PendingRewardService(this);
         this.boosterService = new BoosterService(this);
         this.fishingTask = new FishingTask(this);
         this.fishingListener = new FishingListener(this);
@@ -150,6 +160,8 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         getServer().getPluginManager().registerEvents(new CookingListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinQuitListener(this), this);
         getServer().getPluginManager().registerEvents(new FishingAreaTrackerListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.alkacode.fish.listener.RodProtectionListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.alkacode.fish.listener.AreaPvpListener(this), this);
 
         getCommand("fish").setExecutor(new FishCommand(this));
         getCommand("sair").setExecutor(new SairCommand(this));
@@ -171,10 +183,13 @@ public final class AlkaFishPlugin extends AlkaPlugin {
             this.worldGuardHook = new WorldGuardHook(this);
             this.mcMMOHook = new McMMOHook(this);
             this.worldEditHook = new WorldEditHook();
+            this.alkaCratesHook = new AlkaCratesHook(this);
             getLogger().info("Hooks lazy-initialized.");
         }, 1L);
 
         getServer().getScheduler().runTaskAsynchronously(this, () -> playerDataManager.loadAllOnline());
+        fishBagService.loadAllOnline();
+        pendingRewardService.loadAllOnline();
 
         getLogger().info("AlkaFish v" + getDescription().getVersion() + " habilitado.");
     }
@@ -185,6 +200,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
             fishCaughtRepository.createTable();
             tournamentRecordRepository.createTable();
             fishBagRepository.createTable();
+            pendingRewardRepository.createTable();
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Falha ao criar tabelas do AlkaFish", e);
         }
@@ -229,13 +245,16 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     public NpcManager getNpcManager() { return npcManager; }
     public FishingAreaManager getFishingAreaManager() { return fishingAreaManager; }
     public RewardManager getRewardManager() { return rewardManager; }
+    public TierManager getTierManager() { return tierManager; }
 
     public PlayerFishDataRepository getPlayerFishDataRepository() { return playerFishDataRepository; }
     public FishCaughtRepository getFishCaughtRepository() { return fishCaughtRepository; }
     public TournamentRecordRepository getTournamentRecordRepository() { return tournamentRecordRepository; }
     public FishBagRepository getFishBagRepository() { return fishBagRepository; }
+    public PendingRewardRepository getPendingRewardRepository() { return pendingRewardRepository; }
 
     public FishBagService getFishBagService() { return fishBagService; }
+    public PendingRewardService getPendingRewardService() { return pendingRewardService; }
     public BoosterService getBoosterService() { return boosterService; }
     public FishingTask getFishingTask() { return fishingTask; }
     public FishingListener getFishingListener() { return fishingListener; }
@@ -253,4 +272,5 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     public WorldGuardHook getWorldGuardHook() { return worldGuardHook; }
     public McMMOHook getMcMMOHook() { return mcMMOHook; }
     public WorldEditHook getWorldEditHook() { return worldEditHook; }
+    public AlkaCratesHook getAlkaCratesHook() { return alkaCratesHook; }
 }

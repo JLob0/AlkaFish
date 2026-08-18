@@ -3,6 +3,7 @@ package com.alkacode.fish.task;
 import com.alkacode.fish.AlkaFishPlugin;
 import com.alkacode.fish.model.FishingRod;
 import com.alkacode.fish.model.PlayerFishStats;
+import com.alkacode.fish.util.FishUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.FishHook;
@@ -18,11 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * pesca a cada `delay` da vara. Mostra contador de peixes na hotbar e no chat, e para
  * quando a vara (se quebrável) quebra.
  *
+ * <p>O contador de peixes exibido (actionbar + chat) é o mesmo mantido por
+ * {@link com.alkacode.fish.manager.FishingAreaManager} para a visita à área inteira -
+ * NÃO reseta a cada lance de vara, só quando o jogador realmente entra/sai da área
+ * (ver {@link com.alkacode.fish.listener.FishingAreaTrackerListener}).
+ *
  * <p>O AFK é encerrado automaticamente (recolhendo a linha) se:
  * <ul>
  *   <li>o jogador sair da região principal de pesca;</li>
- *   <li>o hook sair da região principal ou da água;</li>
- *   <li>o jogador se afastar mais de {@code max-fishing-distance} blocos do hook.</li>
+ *   <li>a entidade do hook deixar de existir de verdade (não uma leitura de posição -
+ *       ver {@code anchor} no Session, congelado no lance pra ignorar bobbing/correnteza);</li>
+ *   <li>o jogador se afastar mais de {@code max-fishing-distance} blocos do ponto do lance.</li>
  * </ul>
  * Enquanto o jogador andar DENTRO da região, a linha não recolhe.
  */
@@ -52,27 +59,62 @@ public final class FishingTask {
 
         long delayTicks = Math.max(20L, rod.getDelaySeconds() * 20L);
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> cycle(player, finalRod, hook), delayTicks, delayTicks);
-        sessions.put(uuid, new Session(task, finalRod, hook));
+        // ActionBar tem vida curta (~3s) no client - um heartbeat próprio mantém ela
+        // visível o ciclo inteiro, já que o delay da vara costuma ser bem maior que isso.
+        BukkitTask actionBarTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> tickActionBar(player), 0L, 20L);
+        // Âncora congelada no local/instante do lance - o bobber vanilla tem física própria
+        // (bobbing, correnteza) que fica derivando a posição real do hook aos poucos; usar
+        // hook.getLocation() ao vivo em todo ciclo fazia a linha "recolher sozinha" depois de
+        // um tempo mesmo com o jogador parado e a vara no nível máximo. As checagens de
+        // área/água passam a validar contra esse ponto fixo, não a posição física atual.
+        Location anchor = hook.getLocation().clone();
+        sessions.put(uuid, new Session(task, actionBarTask, finalRod, hook, anchor));
 
-        plugin.getFishingAreaManager().markEnter(player);
-        showTitle(player, true);
+        FishUtil.showTitle(player, plugin.getMessages(), "fish.started_title", "fish.started_subtitle");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+        // Linha vazia antes: separa visualmente o começo da sessão de pesca do resto do chat.
+        player.sendMessage(net.kyori.adventure.text.Component.empty());
+        player.sendMessage(plugin.getMessages().parse("fish.started"));
+    }
+
+    private void tickActionBar(Player player) {
+        if (!sessions.containsKey(player.getUniqueId())) return;
+        int count = plugin.getFishingAreaManager().getFishCount(player);
+        String name = "peixe" + (count == 1 ? "" : "s");
+        player.sendActionBar(plugin.getMessages().parse("fish.afk_fishing",
+                Map.of("count", String.valueOf(count), "name", name)));
     }
 
     private void cycle(Player player, FishingRod rod, FishHook hook) {
         UUID uuid = player.getUniqueId();
+        Session session = sessions.get(uuid);
+        if (session == null) return;
 
-        // Recolhe automaticamente se o jogador saiu da região, o hook saiu da região/água,
-        // ou o jogador se afastou além do limite configurado.
-        if (!player.isOnline()
-                || !plugin.getFishingAreaManager().isPlayerInFishingArea(player)
-                || !hook.isValid()
-                || !plugin.getFishingAreaManager().isHookInFishingArea(hook)
-                || !plugin.getFishingAreaManager().isWaterInArea(hook.getLocation())) {
+        if (!player.isOnline()) {
+            retractAndStop(player, hook);
+            return;
+        }
+
+        // A entidade do hook precisa continuar existindo (senão a linha foi recolhida de
+        // verdade por algum motivo real), mas a checagem de área/água usa a ÂNCORA
+        // congelada no lance, não a posição física ao vivo - o bobber vanilla desliza um
+        // pouco sozinho (bobbing/correnteza) e isso derrubava a sessão depois de um tempo
+        // mesmo com o jogador parado e a vara no nível máximo.
+        if (!hook.isValid()) {
+            if (session.misses().incrementAndGet() < 2) return;
+            retractAndStop(player, hook);
+            return;
+        }
+        session.misses().set(0);
+        Location anchor = session.anchor();
+
+        // Jogador saindo da região é sempre imediato (intencional).
+        if (!plugin.getFishingAreaManager().isPlayerInFishingArea(player)) {
             retractAndStop(player, hook);
             return;
         }
         double maxDist = plugin.getConfig().getDouble("fishing-area.max-fishing-distance", 50.0);
-        if (maxDist >= 0 && player.getLocation().distance(hook.getLocation()) > maxDist) {
+        if (maxDist >= 0 && player.getLocation().distance(anchor) > maxDist) {
             retractAndStop(player, hook);
             return;
         }
@@ -83,24 +125,15 @@ public final class FishingTask {
             return;
         }
 
-        Session session = sessions.get(uuid);
-        int currentCount = session != null ? session.fishCaught() : 0;
-        Location hookLoc = hook.getLocation();
-
-        // ActionBar persistente — mostra em TODO ciclo
-        String name = "peixe" + (currentCount == 1 ? "" : "s");
-        player.sendActionBar(plugin.getMessages().parse("fish.afk_fishing",
-            java.util.Map.of("count", String.valueOf(currentCount), "name", name)));
-
-        boolean caught = plugin.getFishingListener().afkCatch(player, hookLoc);
+        boolean caught = plugin.getFishingListener().afkCatch(player, anchor);
         if (!caught) return;
 
-        int newCount = currentCount + 1;
-        sessions.put(uuid, session.withFishCaught(newCount));
-
-        // ActionBar de captura
+        // Flash de captura - o heartbeat volta a mostrar o status genérico no próximo tick.
+        int count = plugin.getFishingAreaManager().getFishCount(player);
+        String name = "peixe" + (count == 1 ? "" : "s");
         player.sendActionBar(plugin.getMessages().parse("fish.afk_count",
-            java.util.Map.of("count", String.valueOf(newCount), "name", name)));
+            Map.of("count", String.valueOf(count), "name", name,
+                    "bonus", plugin.getFishingClassManager().getBonusSuffix(player))));
 
         // Checagem de quebra
         if (!rod.isUnbreakable()) {
@@ -110,6 +143,9 @@ public final class FishingTask {
                 plugin.getPlayerDataManager().save(uuid);
                 plugin.getRodManager().removeRodItem(player);
                 retractAndStop(player, hook);
+                // Vara quebrada encerra a pesca atual de verdade (precisa reparar pra continuar) -
+                // a proxima pesca deve contar do zero, nao herdar o total de antes de quebrar.
+                plugin.getFishingAreaManager().markEnter(player);
                 player.sendMessage(plugin.getMessages().parse("rod.broke_afk"));
             }
         }
@@ -126,8 +162,9 @@ public final class FishingTask {
         Session session = sessions.remove(player.getUniqueId());
         if (session == null) return;
         session.task().cancel();
-        plugin.getFishingAreaManager().markLeave(player);
-        showTitle(player, false);
+        session.actionBarTask().cancel();
+        FishUtil.showTitle(player, plugin.getMessages(), "fish.stopped_title", "fish.stopped_subtitle");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_CAT_AMBIENT, 1f, 1f);
     }
 
     /** Para o modo AFK SEM mostrar title (usado quando o jogador recolhe manualmente). */
@@ -135,7 +172,7 @@ public final class FishingTask {
         Session session = sessions.remove(player.getUniqueId());
         if (session == null) return;
         session.task().cancel();
-        plugin.getFishingAreaManager().markLeave(player);
+        session.actionBarTask().cancel();
     }
 
     public boolean isFishing(Player player) {
@@ -150,32 +187,10 @@ public final class FishingTask {
         sessions.clear();
     }
 
-    private void showTitle(Player player, boolean started) {
-        var title = plugin.getMessages().parse(started ? "fish.started_title" : "fish.stopped_title");
-        var subtitle = parseOrEmpty(started ? "fish.started_subtitle" : "fish.stopped_subtitle");
-        player.showTitle(net.kyori.adventure.title.Title.title(
-                title, subtitle,
-                net.kyori.adventure.title.Title.Times.times(
-                        java.time.Duration.ofMillis(300), java.time.Duration.ofMillis(1500), java.time.Duration.ofMillis(300))));
-    }
-
-    /** Resolve a mensagem; se a key não existir no messages.yml (parse devolve a própria
-     * key), retorna um componente vazio em vez de mostrar texto cru. */
-    private net.kyori.adventure.text.Component parseOrEmpty(String key) {
-        var msg = plugin.getMessages().parse(key);
-        if (msg != null) {
-            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(msg);
-            if (plain.equals(key)) return net.kyori.adventure.text.Component.empty();
-        }
-        return msg;
-    }
-
-    private record Session(BukkitTask task, FishingRod rod, FishHook hook, int fishCaught) {
-        Session(BukkitTask task, FishingRod rod, FishHook hook) {
-            this(task, rod, hook, 0);
-        }
-        Session withFishCaught(int n) {
-            return new Session(task, rod, hook, n);
+    private record Session(BukkitTask task, BukkitTask actionBarTask, FishingRod rod, FishHook hook, Location anchor,
+                            java.util.concurrent.atomic.AtomicInteger misses) {
+        Session(BukkitTask task, BukkitTask actionBarTask, FishingRod rod, FishHook hook, Location anchor) {
+            this(task, actionBarTask, rod, hook, anchor, new java.util.concurrent.atomic.AtomicInteger(0));
         }
     }
 }

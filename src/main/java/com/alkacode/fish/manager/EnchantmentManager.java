@@ -109,7 +109,7 @@ public final class EnchantmentManager {
         int current = stats.getRodEnchantLevel(enchantId);
         if (enc.getMaxLevel() != -1 && current >= enc.getMaxLevel()) return false;
         int cost = enc.costForLevel(current);
-        return stats.getNacar() >= cost;
+        return plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar") >= cost;
     }
 
     public boolean upgradeEnchantment(Player player, String enchantId) {
@@ -119,9 +119,12 @@ public final class EnchantmentManager {
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         int current = stats.getRodEnchantLevel(enchantId);
         int cost = enc.costForLevel(current);
-        stats.setNacar(stats.getNacar() - cost);
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", cost);
         stats.setRodEnchantLevel(enchantId, current + 1);
         plugin.getPlayerDataManager().save(player.getUniqueId());
+        // Sem isso a vara na mão ficava com o lore de encantamento congelado até
+        // sair/voltar da área - o mesmo tipo de bug já corrigido pro nacar por captura.
+        plugin.getRodManager().refreshRodItem(player);
         player.sendMessage(plugin.getMessages().parse("rod.enchant-upgraded",
                 java.util.Map.of("enchant", enc.getDisplayName(), "level", String.valueOf(current + 1))));
         return true;

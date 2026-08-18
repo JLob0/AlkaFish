@@ -5,7 +5,6 @@ import com.alkacode.fish.database.entity.FishCaughtEntity;
 import com.alkacode.fish.gui.FishingAreaGui;
 import com.alkacode.fish.model.Bait;
 import com.alkacode.fish.model.Fish;
-import com.alkacode.fish.model.FishRarity;
 import com.alkacode.fish.model.PlayerFishStats;
 import com.alkacode.fish.util.WeightUtil;
 import org.bukkit.Bukkit;
@@ -70,26 +69,22 @@ public final class FishingListener implements Listener {
                         plugin.getFishingTask().start(player, hook);
                     }
                 }, 10L);
-            } else if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
+            } else if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH
+                    || event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
+                // O bobber vanilla continua vivo (não cancelamos o FISHING inicial, é
+                // proposital pro visual) e por conta disso o ciclo de "morde a isca" dele
+                // continua rodando sozinho em paralelo ao nosso cycle() - de tempos em
+                // tempos ele MORDE (a boia afunda) e AUTO-RESOLVE em CAUGHT_FISH/
+                // FAILED_ATTEMPT SEM o jogador clicar em nada. Achávamos que esses estados
+                // só disparavam de clique manual e usávamos isso pra "parar a pesca
+                // educadamente" - só que isso também parava sozinho no meio do AFK sempre
+                // que o vanilla mordia por conta própria (era esse o bug da "linha
+                // recolhida" mesmo parado/vara no máximo). Agora só absorvemos o evento e
+                // deixamos o hook vivo - quem manda em quando a sessão para de verdade é
+                // só o cycle() (área/distância/vara quebrada/sacola cheia) ou /fish sair.
                 if (plugin.getFishingTask().isFishing(player)) {
                     event.setCancelled(true);
                     if (event.getCaught() instanceof Item) event.getCaught().remove();
-                    // Recolhe a linha (o evento foi cancelado, então remove o hook manualmente).
-                    hook.remove();
-                    // Puxou a linha manualmente -> avisa e encerra o AFK sem title de parada.
-                    int count = plugin.getFishingAreaManager().getFishCount(player);
-                    player.sendMessage(plugin.getMessages().parse("fish.stopped",
-                            java.util.Map.of("count", String.valueOf(count))));
-                    plugin.getFishingTask().stopQuietly(player);
-                }
-            } else if (event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
-                // Recolheu a linha sem peixe -> também avisa e encerra o AFK.
-                if (plugin.getFishingTask().isFishing(player)) {
-                    hook.remove();
-                    int count = plugin.getFishingAreaManager().getFishCount(player);
-                    player.sendMessage(plugin.getMessages().parse("fish.stopped",
-                            java.util.Map.of("count", String.valueOf(count))));
-                    plugin.getFishingTask().stopQuietly(player);
                 }
             }
             return;
@@ -256,6 +251,33 @@ public final class FishingListener implements Listener {
     private void processCaptured(Player player, Fish fish, double length, double weight, Location loc) {
         PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
 
+        // Sacola cheia (limite de itens POR JOGADOR - upgradável, ver FishBagService)
+        // - peixe escapa e, se tava no AFK, recolhe a linha (não faz sentido continuar
+        // rolando peixe que não vai caber em lugar nenhum).
+        double maxBagItems = stats.getBagCapacity();
+        if (maxBagItems > 0) {
+            int currentItems = plugin.getFishBagService().getBag(player).stream()
+                    .mapToInt(com.alkacode.fish.database.entity.FishBagEntryEntity::amount).sum();
+            if (currentItems >= maxBagItems) {
+                boolean autoSellPerk = plugin.getAlkaVipsHook() != null
+                        && plugin.getAlkaVipsHook().isAvailable()
+                        && plugin.getAlkaVipsHook().hasPerk(player.getUniqueId(), "auto-sell-bag-full");
+                if (autoSellPerk && stats.isAutoSellOnFull()) {
+                    double sold = plugin.getFishBagService().sellAll(player);
+                    player.sendMessage(plugin.getMessages().parse("bag.auto_sold",
+                            java.util.Map.of("price", String.format("%.2f", sold))));
+                    // Sacola esvaziada - segue o fluxo normal abaixo pra guardar o peixe atual.
+                } else {
+                    player.sendMessage(plugin.getMessages().parse("fish.bag-full"));
+                    if (plugin.getFishingTask().isFishing(player)) {
+                        removePlayerHook(player);
+                        plugin.getFishingTask().stop(player);
+                    }
+                    return;
+                }
+            }
+        }
+
         // Verificar peso suportado pela vara
         var rod = plugin.getRodManager().getRodById(stats.getRodId());
         if (rod != null && weight > rod.getSupportedWeight()) {
@@ -267,6 +289,9 @@ public final class FishingListener implements Listener {
                 plugin.getRodManager().removeRodItem(player);
                 removePlayerHook(player);
                 plugin.getFishingTask().stop(player);
+                // Vara quebrada encerra a pesca atual de verdade (precisa reparar pra continuar) -
+                // a próxima pesca deve contar do zero, não herdar o total de antes de quebrar.
+                plugin.getFishingAreaManager().markEnter(player);
                 return; // Peixe escapa
             }
             player.sendMessage(plugin.getMessages().parse("rod.cannot-carry"));
@@ -281,15 +306,31 @@ public final class FishingListener implements Listener {
                 stats.setRodBroken(true);
                 player.sendMessage(plugin.getMessages().parse("rod.broke_afk"));
                 plugin.getPlayerDataManager().save(player.getUniqueId());
+                plugin.getFishingAreaManager().markEnter(player);
                 return; // Peixe escapa, vara quebrou
             }
         }
 
-        // Peixe vai direto para a sacola no banco (nunca para o inventário)
-        plugin.getFishBagService().add(player, fish, weight);
+        // Auto-sell: se a vara permite (allow-auto-sell) e o jogador tem auto-sell
+        // ativo no AlkaShop, vende na hora em vez de guardar na sacola. AlkaShop é quem
+        // dono desse toggle (ver /fish autosell) - AlkaFish só pergunta e entrega o item.
+        boolean autoSold = false;
+        if (rod != null && rod.isAllowAutoSell() && plugin.getAlkaShopHook() != null
+                && plugin.getAlkaShopHook().isAvailable() && plugin.getAlkaShopHook().isAutoSellActive(player)) {
+            org.bukkit.inventory.ItemStack fishItem = fish.toItemStack(plugin, length, weight);
+            var totals = plugin.getAlkaShopHook().sellItems(player, java.util.List.of(fishItem));
+            if (!totals.isEmpty()) {
+                plugin.getAlkaShopHook().notifyAutoSell(player, totals);
+                autoSold = true;
+            }
+        }
+        if (!autoSold) {
+            // Peixe vai direto para a sacola no banco (nunca para o inventário)
+            plugin.getFishBagService().add(player, fish, weight);
+            stats.addToBag(weight);
+        }
 
         stats.addCatch(fish, length, weight);
-        stats.addToBag(weight);
 
         fishCaughtRepositoryInsert(player, fish, length, weight, loc);
         plugin.getTournamentManager().registerCatch(player, fish, length, weight);
@@ -298,21 +339,26 @@ public final class FishingListener implements Listener {
                 "fish", fish.getDisplayName(),
                 "rarity", fish.getRarity().coloredName(),
                 "length", String.format("%.1f", length),
-                "weight", String.format("%.2f", weight))));
+                "weight", String.format("%.2f", weight),
+                "bonus", plugin.getFishingClassManager().getBonusSuffix(player))));
 
-        if (fish.getRarity().ordinal() >= FishRarity.LEGENDARY.ordinal()) {
-            Bukkit.broadcast(plugin.getMessages().parse("fish.legendary-broadcast", java.util.Map.of(
-                    "player", player.getName(),
-                    "fish", fish.getDisplayName(),
-                    "length", String.format("%.1f", length))));
+        var tier = plugin.getTierManager().getAnnouncement(fish.getRarity());
+        if (tier != null) {
+            com.alkacode.fish.util.FishUtil.showRawTitle(player, tier.title(), tier.subtitle());
+            String broadcast = tier.broadcast()
+                    .replace("{player}", player.getName())
+                    .replace("{fish}", fish.getDisplayName())
+                    .replace("{length}", String.format("%.1f", length));
+            Bukkit.broadcast(com.alkacode.fish.util.FishUtil.parse(broadcast));
         }
 
-        // Nacar com booster NACAR_MULTIPLIER
-        double nacarReward = fish.getBasePrice() * 0.1;
+        // Nacar com booster NACAR_MULTIPLIER (moeda real da AlkaEconomy, não stat local)
+        double nacarReward = fish.getNacarPrice();
         nacarReward *= (1 + plugin.getEnchantmentManager().getTotalMultiplierBonus(player));
         nacarReward *= (1 + plugin.getFishingClassManager().getCoinBonus(player) / 100.0);
         nacarReward *= (1 + plugin.getBoosterService().getNacarMultiplier(player) / 100.0);
-        stats.setNacar(stats.getNacar() + nacarReward);
+        plugin.getEconomyBridge().deposit(player.getUniqueId(), "nacar", nacarReward);
+        stats.setRodNacarEarned(stats.getRodNacarEarned() + nacarReward);
 
         plugin.getEnchantmentManager().processKeychain(player);
         processRodRewards(player, rod);
@@ -326,6 +372,9 @@ public final class FishingListener implements Listener {
         plugin.getFishingAreaManager().incrementFishCount(player);
         plugin.getLevelManager().addXp(player, stats, fish.getXpReward());
         plugin.getPlayerDataManager().save(player.getUniqueId());
+        if (!plugin.getRodManager().tryAutoUpgrade(player)) {
+            plugin.getRodManager().refreshRodItem(player);
+        }
     }
 
     private void processRodRewards(Player player, com.alkacode.fish.model.FishingRod rod) {

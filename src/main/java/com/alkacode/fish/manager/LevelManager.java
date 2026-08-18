@@ -2,14 +2,12 @@ package com.alkacode.fish.manager;
 
 import com.alkacode.fish.AlkaFishPlugin;
 import com.alkacode.fish.model.PlayerFishStats;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 
 /** Lida com progressão de nível e XP dos jogadores. */
 public final class LevelManager {
 
     private final AlkaFishPlugin plugin;
-    private final MiniMessage mm = MiniMessage.miniMessage();
 
     public LevelManager(AlkaFishPlugin plugin) {
         this.plugin = plugin;
@@ -34,8 +32,8 @@ public final class LevelManager {
         }
         int gained = stats.getLevel() - levelsBefore;
         if (gained > 0) {
-            player.sendMessage(mm.deserialize(
-                    "<gold><bold>LEVEL UP! <yellow>Você alcançou o nível <aqua>" + stats.getLevel() + "<yellow>!"));
+            player.sendMessage(plugin.getMessages().parse("level.up",
+                    java.util.Map.of("level", String.valueOf(stats.getLevel()))));
             plugin.getPlayerDataManager().save(player.getUniqueId());
         }
         return gained;

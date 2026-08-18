@@ -37,13 +37,29 @@ public final class PlayerFishDataRepository extends AbstractRepository {
                 + "nacar DOUBLE DEFAULT 0, "
                 + "nacar_next DOUBLE DEFAULT 100)";
         execute(sql, ps -> {});
+        addColumnIfMissing("auto_upgrade_enabled", "BOOLEAN DEFAULT FALSE");
+        addColumnIfMissing("saved_inventory", "TEXT DEFAULT ''");
+        addColumnIfMissing("total_fishing_seconds", "BIGINT DEFAULT 0");
+        addColumnIfMissing("rod_skin_id", "VARCHAR(32) DEFAULT ''");
+        addColumnIfMissing("auto_sell_on_full", "BOOLEAN DEFAULT FALSE");
+    }
+
+    /** Adiciona coluna nova numa tabela já existente sem apagar dados (ALTER TABLE
+     * idempotente - ignora o erro de "coluna já existe" em restarts seguintes). */
+    private void addColumnIfMissing(String column, String definition) {
+        try {
+            execute("ALTER TABLE alkafish_player_data ADD COLUMN " + column + " " + definition, ps -> {});
+        } catch (SQLException ignored) {
+            // coluna ja existe de uma execucao anterior
+        }
     }
 
     public void save(PlayerFishDataEntity e) throws SQLException {
         String[] columns = {"player_uuid", "level", "xp", "total_caught", "biggest_length",
                 "biggest_fish_id", "total_weight", "bag_capacity", "current_bag_weight",
                 "rod_id", "rod_level", "rod_broken", "rod_enchants",
-                "active_class_id", "unlocked_classes", "nacar", "nacar_next"};
+                "active_class_id", "unlocked_classes", "nacar", "nacar_next", "auto_upgrade_enabled", "saved_inventory",
+                "total_fishing_seconds", "rod_skin_id", "auto_sell_on_full"};
         String sql = upsert("alkafish_player_data", columns, new String[]{"player_uuid"});
         execute(sql, ps -> bind(ps, e));
     }
@@ -64,8 +80,13 @@ public final class PlayerFishDataRepository extends AbstractRepository {
         ps.setString(13, e.rodEnchants());
         ps.setString(14, e.activeClassId());
         ps.setString(15, e.unlockedClasses());
-        ps.setDouble(16, e.nacar());
+        ps.setDouble(16, e.rodNacarEarned());
         ps.setDouble(17, e.nacarNext());
+        ps.setBoolean(18, e.autoUpgradeEnabled());
+        ps.setString(19, e.savedInventory());
+        ps.setLong(20, e.totalFishingSeconds());
+        ps.setString(21, e.rodSkinId());
+        ps.setBoolean(22, e.autoSellOnFull());
     }
 
     public Optional<PlayerFishDataEntity> findByUuid(UUID uuid) throws SQLException {
@@ -96,6 +117,38 @@ public final class PlayerFishDataRepository extends AbstractRepository {
                 rs.getString("active_class_id"),
                 rs.getString("unlocked_classes"),
                 rs.getDouble("nacar"),
-                rs.getDouble("nacar_next"));
+                rs.getDouble("nacar_next"),
+                rs.getBoolean("auto_upgrade_enabled"),
+                rs.getString("saved_inventory"),
+                rs.getLong("total_fishing_seconds"),
+                rs.getString("rod_skin_id"),
+                rs.getBoolean("auto_sell_on_full"));
     }
+
+    /** Top N jogadores por uma coluna numérica (total_caught, total_weight ou
+     * total_fishing_seconds) - consulta direta no banco (não no cache, que só tem
+     * jogadores online), pensada pra tela de TOP, não pra hot path. */
+    private static final java.util.Set<String> TOP_COLUMNS =
+            java.util.Set.of("total_caught", "total_weight", "total_fishing_seconds");
+
+    public java.util.List<TopEntry> findTop(String column, int limit) throws SQLException {
+        if (!TOP_COLUMNS.contains(column)) {
+            throw new IllegalArgumentException("Coluna de TOP não permitida: " + column);
+        }
+        java.util.List<TopEntry> out = new java.util.ArrayList<>();
+        try (var conn = db.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT player_uuid, " + column + " AS value FROM alkafish_player_data "
+                             + "ORDER BY " + column + " DESC LIMIT ?")) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    out.add(new TopEntry(UUID.fromString(rs.getString("player_uuid")), rs.getDouble("value")));
+                }
+            }
+        }
+        return out;
+    }
+
+    public record TopEntry(UUID uuid, double value) {}
 }

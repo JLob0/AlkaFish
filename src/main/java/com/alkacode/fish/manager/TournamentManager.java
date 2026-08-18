@@ -47,9 +47,12 @@ public final class TournamentManager {
                 1.0f, BossBar.Color.YELLOW, BossBar.Overlay.NOTCHED_20);
         Bukkit.getOnlinePlayers().forEach(p -> p.showBossBar(tournamentBar));
 
+        // Framing com linha vazia antes/depois - destaca o anúncio do resto do chat (estilo yPesca).
+        Bukkit.broadcast(net.kyori.adventure.text.Component.empty());
         Bukkit.broadcast(mm.deserialize("<gold><bold>🏆 TORNEIO DE PESCA INICIADO!"));
         Bukkit.broadcast(mm.deserialize("<yellow>Tipo: <gold>" + type.getDisplayName()
                 + " <yellow>| Duração: <gold>" + durationMinutes + " min"));
+        Bukkit.broadcast(net.kyori.adventure.text.Component.empty());
 
         tournamentTask = new BukkitRunnable() {
             @Override
@@ -81,9 +84,13 @@ public final class TournamentManager {
         Bukkit.getOnlinePlayers().forEach(p -> p.hideBossBar(tournamentBar));
 
         List<Map.Entry<UUID, Double>> sorted = getSortedScores();
+        Bukkit.broadcast(net.kyori.adventure.text.Component.empty());
         Bukkit.broadcast(mm.deserialize("<gold><bold>🏆 TORNEIO ENCERRADO!"));
 
         List<String[]> rewards = loadRewardCommands();
+        if (sorted.isEmpty()) {
+            Bukkit.broadcast(mm.deserialize("<gray>Não houve vencedores."));
+        }
         for (int i = 0; i < Math.min(3, sorted.size()); i++) {
             Map.Entry<UUID, Double> entry = sorted.get(i);
             Player p = Bukkit.getPlayer(entry.getKey());
@@ -93,6 +100,7 @@ public final class TournamentManager {
             giveRewards(entry.getKey(), i + 1, rewards);
             recordResult(entry.getKey(), i + 1, entry.getValue());
         }
+        Bukkit.broadcast(net.kyori.adventure.text.Component.empty());
 
         activeTournament = null;
         activeSellMultiplier = 1.0;
@@ -163,6 +171,18 @@ public final class TournamentManager {
 
     public double getActiveSellMultiplier() { return activeSellMultiplier; }
     public Tournament getActiveTournament() { return activeTournament; }
+
+    /** Top N colocados do torneio ativo agora (pra mostrar ao vivo no item da GUI). */
+    public List<TopScore> getTopScores(int limit) {
+        List<Map.Entry<UUID, Double>> sorted = getSortedScores();
+        List<TopScore> out = new ArrayList<>();
+        for (int i = 0; i < sorted.size() && i < limit; i++) {
+            out.add(new TopScore(sorted.get(i).getKey(), sorted.get(i).getValue()));
+        }
+        return out;
+    }
+
+    public record TopScore(UUID uuid, double score) {}
 
     private List<Map.Entry<UUID, Double>> getSortedScores() {
         List<Map.Entry<UUID, Double>> list = new ArrayList<>(scores.entrySet());

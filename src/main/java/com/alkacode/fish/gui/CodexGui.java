@@ -14,7 +14,7 @@ import java.util.List;
 public final class CodexGui extends FishGui {
 
     public CodexGui(AlkaFishPlugin plugin, Player player) {
-        super(plugin, player, "📖 Codex de Peixes", 6, "alkafish-codex");
+        super(plugin, player, "📖 Codex de Peixes", Category.PROGRESSION, 6, "alkafish-codex");
     }
 
     @Override

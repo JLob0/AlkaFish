@@ -60,6 +60,7 @@ public final class FishManager {
                         section.getDouble("min-weight", 0.1),
                         section.getDouble("max-weight", 1.0),
                         section.getDouble("base-price", 5.0),
+                        section.getDouble("nacar-price", 1.0),
                         section.getString("items-adder-id", ""),
                         section.getInt("custom-model-data", 0),
                         section.getBoolean("requires-night", false),

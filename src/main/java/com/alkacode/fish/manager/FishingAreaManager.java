@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,8 +145,17 @@ public final class FishingAreaManager {
         var rod = plugin.getRodManager().getRodById(stats.getRodId());
         if (rod == null) rod = plugin.getRodManager().getDefaultRod();
         if (rod != null) plugin.getRodManager().giveRodItem(player, rod);
+        // O set de classe é só visual/local à área (jogador entra sem itens) - reaplica
+        // aqui pra não sumir toda vez que ele sai e volta.
+        plugin.getFishingClassManager().reapplyActiveClass(player);
 
+        // Linha vazia antes/depois: separa visualmente o aviso de entrada do resto do chat (estilo yPesca).
+        player.sendMessage(net.kyori.adventure.text.Component.empty());
         player.sendMessage(plugin.getMessages().parse("area.teleported", java.util.Map.of("area", area.getDisplayName())));
+        player.sendMessage(plugin.getMessages().parse("area.entered"));
+        player.sendMessage(net.kyori.adventure.text.Component.empty());
+        com.alkacode.fish.util.FishUtil.showTitle(player, plugin.getMessages(), "area.entered_title", "area.entered_subtitle");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
         if (plugin.getConfig().getBoolean("fishing-area.invisibility.auto-toggle", true)) {
             plugin.getFishingAreaManager().setInvisibility(player, true);
         }
@@ -162,28 +172,70 @@ public final class FishingAreaManager {
         if (plugin.getFishingAreaManager().isInvisible(player)) {
             plugin.getFishingAreaManager().setInvisibility(player, false);
         }
+        pvpEnabledPlayers.remove(player.getUniqueId());
         plugin.getRodManager().removeRodItem(player);
         plugin.getFishingClassManager().clearClassEffects(player);
         restoreInventory(player);
+        player.sendMessage(net.kyori.adventure.text.Component.empty());
         player.sendMessage(plugin.getMessages().parse("area.left"));
+        player.sendMessage(net.kyori.adventure.text.Component.empty());
+        com.alkacode.fish.util.FishUtil.showTitle(player, plugin.getMessages(), "area.left_title", "area.left_subtitle");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
     }
 
     // --- inventário da área (só pode entrar sem itens) ---
-    private final java.util.Map<java.util.UUID, org.bukkit.inventory.ItemStack[]> savedInventories = new java.util.concurrent.ConcurrentHashMap<>();
+    // Salvo em PlayerFishStats.savedInventory (persistido no banco, não só em memória) -
+    // sobrevive a um restart do servidor com o jogador dentro da área. Antes disso era
+    // um Map em memória que sumia num restart, deixando o item do menu preso no
+    // inventário do jogador pra sempre (nada limpava se não tinha o que restaurar).
 
-    /** Salva o inventário atual (se ainda não salvo), limpa tudo e dá o botão do menu. */
+    /** Salva o inventário atual inteiro (principal + armadura + offhand, se ainda não
+     * salvo), limpa tudo e dá o botão do menu. */
     public void saveAndClearInventory(Player player) {
-        savedInventories.putIfAbsent(player.getUniqueId(), player.getInventory().getContents());
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        if (stats.getSavedInventory() == null || stats.getSavedInventory().isEmpty()) {
+            stats.setSavedInventory(com.alkacode.fish.util.InventoryCodec.encode(captureFullInventory(player)));
+            plugin.getPlayerDataManager().save(player.getUniqueId());
+        }
         player.getInventory().clear();
         giveMenuOpener(player);
     }
 
-    /** Restaura o inventário salvo ao sair da área (se houver). */
+    /** Restaura o inventário salvo ao sair da área. Limpa o inventário atual SEMPRE
+     * primeiro (mesmo sem save pra restaurar) - garante que a vara/menu/armadura de
+     * classe nunca ficam presos no jogador. */
     public void restoreInventory(Player player) {
-        org.bukkit.inventory.ItemStack[] saved = savedInventories.remove(player.getUniqueId());
-        if (saved != null) {
-            player.getInventory().setContents(saved);
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        String saved = stats.getSavedInventory();
+        player.getInventory().clear();
+        if (saved != null && !saved.isEmpty()) {
+            applyFullInventory(player, com.alkacode.fish.util.InventoryCodec.decode(saved));
+            stats.setSavedInventory("");
+            plugin.getPlayerDataManager().save(player.getUniqueId());
         }
+    }
+
+    /** 36 slots principais + 4 de armadura + 1 offhand, nessa ordem (mesmo padrão do
+     * InvRestore do AlkaEssentials). */
+    private org.bukkit.inventory.ItemStack[] captureFullInventory(Player player) {
+        PlayerInventory inv = player.getInventory();
+        org.bukkit.inventory.ItemStack[] all = new org.bukkit.inventory.ItemStack[41];
+        System.arraycopy(inv.getContents(), 0, all, 0, 36);
+        System.arraycopy(inv.getArmorContents(), 0, all, 36, 4);
+        all[40] = inv.getItemInOffHand();
+        return all;
+    }
+
+    private void applyFullInventory(Player player, org.bukkit.inventory.ItemStack[] all) {
+        PlayerInventory inv = player.getInventory();
+        if (all.length < 41) return;
+        org.bukkit.inventory.ItemStack[] main = new org.bukkit.inventory.ItemStack[36];
+        org.bukkit.inventory.ItemStack[] armor = new org.bukkit.inventory.ItemStack[4];
+        System.arraycopy(all, 0, main, 0, 36);
+        System.arraycopy(all, 36, armor, 0, 4);
+        inv.setContents(main);
+        inv.setArmorContents(armor);
+        inv.setItemInOffHand(all[40]);
     }
 
     /** Item de abertura do menu, fica no meio da hotbar para o jogador abrir a pesca
@@ -201,7 +253,14 @@ public final class FishingAreaManager {
     }
 
     public void giveMenuOpener(Player player) {
-        player.getInventory().setItem(4, createMenuOpener());
+        player.getInventory().setItem(getMenuSlot(), createMenuOpener());
+    }
+
+    /** Slot fixo e configurável do botão de menu (rods.menu-slot) - sempre o mesmo,
+     * nunca "primeiro slot vazio disponível". */
+    public int getMenuSlot() {
+        int slot = plugin.getConfig().getInt("rods.menu-slot", 4);
+        return (slot < 0 || slot >= 36) ? 4 : slot;
     }
 
     /** true se o item é o botão de abrir o menu de pesca. */
@@ -273,14 +332,30 @@ public final class FishingAreaManager {
 
     /** Marca o início da sessão de pesca ao entrar na área. */
     public void markEnter(Player player) {
+        // markEnter tambem e chamado quando a vara quebra (reseta o contador da sessao
+        // atual) - sem isso, o tempo acumulado antes da quebra seria perdido do total.
+        flushElapsedTime(player);
         fishingStartTime.put(player.getUniqueId(), System.currentTimeMillis());
         fishCount.put(player.getUniqueId(), 0);
     }
 
     /** Limpa o estado da sessão ao sair da área. */
     public void markLeave(Player player) {
+        flushElapsedTime(player);
         fishingStartTime.remove(player.getUniqueId());
         fishCount.remove(player.getUniqueId());
+    }
+
+    /** Soma o tempo decorrido do timer atual no total persistido (lifetime) do jogador,
+     * antes que o timer seja resetado/removido. */
+    private void flushElapsedTime(Player player) {
+        Long start = fishingStartTime.get(player.getUniqueId());
+        if (start == null) return;
+        long elapsed = (System.currentTimeMillis() - start) / 1000;
+        if (elapsed <= 0) return;
+        var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
+        stats.setTotalFishingSeconds(stats.getTotalFishingSeconds() + elapsed);
+        plugin.getPlayerDataManager().save(player.getUniqueId());
     }
 
     public void shutdown() {
@@ -324,6 +399,28 @@ public final class FishingAreaManager {
                 }
             }
         }
+    }
+
+    // --- PvP opt-in (zona segura por padrão - só toma dano de outro jogador se AMBOS
+    // tiverem ativado o toggle, ver AreaPvpListener). Não persiste: reseta ao sair da área. ---
+    private final java.util.Set<java.util.UUID> pvpEnabledPlayers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    public void setPvpEnabled(Player player, boolean enabled) {
+        if (enabled) {
+            pvpEnabledPlayers.add(player.getUniqueId());
+            player.sendMessage(plugin.getMessages().parse("area.pvp-on"));
+        } else {
+            pvpEnabledPlayers.remove(player.getUniqueId());
+            player.sendMessage(plugin.getMessages().parse("area.pvp-off"));
+        }
+    }
+
+    public void togglePvp(Player player) {
+        setPvpEnabled(player, !pvpEnabledPlayers.contains(player.getUniqueId()));
+    }
+
+    public boolean isPvpEnabled(Player player) {
+        return pvpEnabledPlayers.contains(player.getUniqueId());
     }
 
     private FishingRegion readRegion(FileConfiguration config, String path) {
