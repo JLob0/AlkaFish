@@ -19,46 +19,39 @@ public final class CodexGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("codex");
         PlayerFishStats stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
 
         // Cabeçalho com contagem
         int total = plugin.getFishManager().getAllFish().size();
         int caught = (int) stats.getCaughtByFishId().values().stream().filter(c -> c > 0).count();
-        setItem(4, createItem(Material.BOOK, "<yellow>📖 Codex de Peixes",
-            "<gray>Peixes descobertos: <green>" + caught + "<gray>/" + total), e -> {});
+        setAt(layout, 'H', createItem(Material.BOOK, "<yellow>📖 Codex de Peixes",
+            "<gray>Peixes descobertos: <green>" + caught + "<gray>/" + total));
 
-        // Renderizar por raridade, começando no slot 10 (pulando borda)
-        int slot = 10;
+        // Renderizar por raridade - 7 slots de conteudo por linha do layout.
+        var contentSlots = layout.findSlots('0');
+        int idx = 0;
         for (FishRarity rarity : FishRarity.values()) {
             List<Fish> fishList = plugin.getFishManager().getFishByRarity(rarity);
             if (fishList.isEmpty()) continue;
+            if (idx >= contentSlots.size()) break;
 
-            // Separador de raridade (se couber)
-            if (slot <= 43 && slot % 9 != 0) {
-                setItem(slot, createItem(rarity.getSeparatorMaterial(), rarity.coloredName()), e -> {});
-                slot++;
-            }
+            // Separador de raridade
+            setItem(contentSlots.get(idx++), createItem(rarity.getSeparatorMaterial(), rarity.coloredName()));
 
             for (Fish fish : fishList) {
-                if (slot > 43) break;
-                // Pular se chegou no final da linha (slot 17, 26, 35, 44 são bordas)
-                if (slot % 9 == 8) slot++;
-                if (slot > 43) break;
-
+                if (idx >= contentSlots.size()) break;
                 int count = stats.getCaughtByFishId().getOrDefault(fish.getId(), 0);
-                setItem(slot, createFishDisplay(fish, count), e -> {});
-                slot++;
+                setItem(contentSlots.get(idx++), createFishDisplay(fish, count));
             }
 
-            // Pular linha entre raridades
-            if (slot % 9 != 1) {
-                slot = ((slot / 9) + 1) * 9 + 1;
+            // Pular pro começo da próxima linha entre raridades.
+            if (idx % 7 != 0) {
+                idx = ((idx / 7) + 1) * 7;
             }
-            if (slot > 43) break;
         }
 
-        setItem(49, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishBagGui(plugin, player).open());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishBagGui(plugin, player).open());
     }
 
     private ItemStack createFishDisplay(Fish fish, int count) {

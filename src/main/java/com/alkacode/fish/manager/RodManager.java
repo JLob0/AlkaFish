@@ -59,9 +59,9 @@ public final class RodManager {
                         section.getBoolean("unbreakable", false),
                         section.getDouble("break-chance", 0.0),
                         section.getBoolean("allow-auto-sell", false),
-                        section.getDouble("repair-cost.coins", 0),
+                        section.getDouble("repair-cost.gold", 0),
                         section.getDouble("repair-cost.nacar", 0),
-                        section.getDouble("upgrade-cost.coins", 0),
+                        section.getDouble("upgrade-cost.gold", 0),
                         section.getDouble("upgrade-cost.nacar", 0),
                         section.getInt("enchant-base-cost", 10),
                         rewards,
@@ -93,7 +93,7 @@ public final class RodManager {
     public boolean canUpgrade(Player player, FishingRod current) {
         FishingRod next = getNextRod(current);
         if (next == null) return false;
-        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
+        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "gold");
         if (coins < next.getUpgradeCostCoins()) return false;
         double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
         return nacar >= next.getUpgradeCostNacar();
@@ -103,7 +103,7 @@ public final class RodManager {
         FishingRod next = getNextRod(current);
         if (next == null) return false;
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", next.getUpgradeCostCoins());
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "gold", next.getUpgradeCostCoins());
         plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", next.getUpgradeCostNacar());
         stats.setRodId(next.getId());
         stats.setRodLevel(next.getLevel());
@@ -137,7 +137,7 @@ public final class RodManager {
 
     public boolean canRepair(Player player, FishingRod rod) {
         if (rod == null) return false;
-        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
+        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "gold");
         if (coins < rod.getRepairCostCoins()) return false;
         double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
         return nacar >= rod.getRepairCostNacar();
@@ -148,7 +148,7 @@ public final class RodManager {
         FishingRod rod = getRodById(stats.getRodId());
         if (rod == null) rod = getDefaultRod();
         if (rod == null) return false;
-        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", rod.getRepairCostCoins());
+        plugin.getEconomyBridge().withdraw(player.getUniqueId(), "gold", rod.getRepairCostCoins());
         plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", rod.getRepairCostNacar());
         stats.setRodBroken(false);
         giveRodItem(player, rod);

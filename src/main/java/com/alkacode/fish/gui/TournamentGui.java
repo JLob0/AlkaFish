@@ -15,12 +15,12 @@ public final class TournamentGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("tournament");
         Tournament tournament = plugin.getTournamentManager().getActiveTournament();
 
         if (tournament == null) {
-            setItem(13, createItem(Material.BARRIER, "<red>Nenhum Torneio Ativo",
-                    "<gray>Aguarde o próximo torneio!"), e -> {});
+            setAt(layout, 'T', createItem(Material.BARRIER, "<red>Nenhum Torneio Ativo",
+                    "<gray>Aguarde o próximo torneio!"));
         } else {
             java.util.List<String> lore = new java.util.ArrayList<>();
             lore.add("<gray>Tempo restante: <yellow>" + tournament.getTimeLeftFormatted());
@@ -39,19 +39,18 @@ public final class TournamentGui extends FishGui {
                     lore.add(medals[i] + " <white>" + name + " <gray>- <aqua>" + String.format("%.2f", entry.score()));
                 }
             }
-            setItem(13, createItem(Material.TROPICAL_FISH, "<gold>" + tournament.getType().getDisplayName(),
-                            lore.toArray(new String[0])),
-                    e -> {});
+            setAt(layout, 'T', createItem(Material.TROPICAL_FISH, "<gold>" + tournament.getType().getDisplayName(),
+                            lore.toArray(new String[0])));
 
             int pos = plugin.getTournamentManager().getPlayerPosition(player);
             double score = plugin.getTournamentManager().getPlayerScore(player);
-            setItem(11, createItem(Material.GOLD_INGOT, "<yellow>Sua Posição",
-                            "<gold>#" + (pos > 0 ? pos : "-")), e -> {});
-            setItem(15, createItem(Material.EMERALD, "<green>Sua Pontuação",
-                            "<green>" + String.format("%.2f", score)), e -> {});
+            setAt(layout, 'P', createItem(Material.GOLD_INGOT, "<yellow>Sua Posição",
+                            "<gold>#" + (pos > 0 ? pos : "-")));
+            setAt(layout, 'S', createItem(Material.EMERALD, "<green>Sua Pontuação",
+                            "<green>" + String.format("%.2f", score)));
         }
 
-        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
-        setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
+        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

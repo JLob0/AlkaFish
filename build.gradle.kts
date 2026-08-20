@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.alkacode"
-version = "1.0.12"
+version = "1.0.15"
 
 java {
     toolchain {
@@ -28,7 +28,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
     compileOnly("com.alkacode:AlkaCore:1.0.3")
-    compileOnly("com.alkacode:AlkaEconomy:1.0.6")
+    compileOnly("com.alkacode:AlkaEconomy:1.0.8")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("net.luckperms:api:5.4")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9")

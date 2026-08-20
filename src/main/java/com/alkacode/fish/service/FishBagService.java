@@ -145,7 +145,7 @@ public final class FishBagService {
                 } catch (Exception ignored) {}
             });
         }
-        plugin.getEconomyBridge().deposit(player.getUniqueId(), "coins", total);
+        plugin.getEconomyBridge().deposit(player.getUniqueId(), "gold", total);
 
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         stats.removeFromBag(stats.getCurrentBagWeight());
@@ -185,7 +185,7 @@ public final class FishBagService {
     }
 
     public boolean canUpgradeBagLimit(Player player) {
-        return plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins") >= bagUpgradeCost(player);
+        return plugin.getEconomyBridge().getBalance(player.getUniqueId(), "gold") >= bagUpgradeCost(player);
     }
 
     /** Compra +limit-per-level no limite da sacola, descontando coins. */
@@ -193,7 +193,7 @@ public final class FishBagService {
         if (!canUpgradeBagLimit(player)) return false;
         double cost = bagUpgradeCost(player);
         double perLevel = plugin.getConfig().getDouble("fishing-area.bag-upgrade.limit-per-level", 100);
-        if (!plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", cost)) return false;
+        if (!plugin.getEconomyBridge().withdraw(player.getUniqueId(), "gold", cost)) return false;
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         stats.setBagCapacity(stats.getBagCapacity() + perLevel);
         plugin.getPlayerDataManager().save(player.getUniqueId());

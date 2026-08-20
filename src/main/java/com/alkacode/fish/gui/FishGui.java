@@ -2,9 +2,14 @@ package com.alkacode.fish.gui;
 
 import com.alkacode.core.gui.BaseGui;
 import com.alkacode.fish.AlkaFishPlugin;
+import com.alkacode.fish.gui.layout.GuiLayoutLoader;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Map;
+import java.util.function.Consumer;
 
 /** Base comum das GUIs do AlkaFish: título com gradiente+bold (categoria do
  * MestreDEV-STYLE-GUIDE.md) e painel preto. */
@@ -43,5 +48,24 @@ public abstract class FishGui extends BaseGui {
     protected void fillBlack() {
         ItemStack glass = createItem(Material.BLACK_STAINED_GLASS_PANE, "<black>♥");
         fillBorder(glass);
+    }
+
+    /** Aplica o layout do YML: preenche a borda (#) com o mesmo painel preto do fillBlack()
+     * e retorna o layout, pra depois usar setAt(...) nos chars de conteudo. */
+    protected GuiLayoutLoader.GuiLayout applyBorder(String layoutName) {
+        GuiLayoutLoader.GuiLayout layout = plugin.getGuiLayoutLoader().getLayout(layoutName);
+        ItemStack glass = createItem(Material.BLACK_STAINED_GLASS_PANE, "<black>♥");
+        layout(layout.layout(), Map.of('#', glass), null);
+        return layout;
+    }
+
+    /** setItem no primeiro slot do char, se existir no layout. */
+    protected void setAt(GuiLayoutLoader.GuiLayout layout, char c, ItemStack item, Consumer<InventoryClickEvent> action) {
+        int slot = layout.firstSlot(c);
+        if (slot >= 0) setItem(slot, item, action);
+    }
+
+    protected void setAt(GuiLayoutLoader.GuiLayout layout, char c, ItemStack item) {
+        setAt(layout, c, item, null);
     }
 }

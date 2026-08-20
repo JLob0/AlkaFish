@@ -28,7 +28,7 @@ public final class RodSkinGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("rod-skin");
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
         FishingRod current = plugin.getRodManager().getRodById(stats.getRodId());
         if (current == null) current = plugin.getRodManager().getDefaultRod();
@@ -38,8 +38,8 @@ public final class RodSkinGui extends FishGui {
         String activeSkin = stats.getRodSkinId();
         boolean usingDefault = activeSkin == null || activeSkin.isEmpty();
 
-        // Slot 10: reset pra skin própria da vara atual (fixo em toda página)
-        setItem(10, createItem(usingDefault ? Material.LIME_DYE : Material.GRAY_DYE,
+        // S: reset pra skin própria da vara atual (fixo em toda página)
+        setAt(layout, 'S', createItem(usingDefault ? Material.LIME_DYE : Material.GRAY_DYE,
                 usingDefault ? "<green>✔ Skin Padrão" : "<gray>Skin Padrão",
                 "<gray>Usa a textura da sua vara atual:",
                 "<white>" + fCurrent.getDisplayName(),
@@ -59,10 +59,13 @@ public final class RodSkinGui extends FishGui {
         int from = safePage * PER_PAGE;
         int to = Math.min(from + PER_PAGE, options.size());
 
-        int slot = 11;
+        var contentSlots = layout.findSlots('0');
+        int idx = 0;
         for (FishingRod rod : options.subList(from, to)) {
+            if (idx >= contentSlots.size()) break;
             boolean selected = rod.getId().equals(activeSkin);
             final String rodId = rod.getId();
+            int slot = contentSlots.get(idx++);
             setItem(slot, createItem(selected ? Material.LIME_DYE : Material.CYAN_DYE,
                     (selected ? "<green>✔ " : "<aqua>") + rod.getDisplayName(),
                     "<gray>Nível: <aqua>" + rod.getLevel(),
@@ -71,19 +74,18 @@ public final class RodSkinGui extends FishGui {
                 plugin.getRodManager().setRodSkin(player, rodId);
                 refresh();
             });
-            slot++;
         }
 
         if (safePage > 0) {
-            setItem(19, createItem(Material.ARROW, "<yellow>◀ Página Anterior"),
+            setAt(layout, 'P', createItem(Material.ARROW, "<yellow>◀ Página Anterior"),
                     e -> new RodSkinGui(plugin, player, safePage - 1).open());
         }
         if (safePage < totalPages - 1) {
-            setItem(25, createItem(Material.ARROW, "<yellow>Próxima Página ▶"),
+            setAt(layout, 'N', createItem(Material.ARROW, "<yellow>Próxima Página ▶"),
                     e -> new RodSkinGui(plugin, player, safePage + 1).open());
         }
 
-        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
-        setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
+        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

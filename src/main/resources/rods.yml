@@ -18,10 +18,10 @@ rods:
     break-chance: 15.0 # % de quebrar a cada peixe pescado no AFK
     allow-auto-sell: false
     repair-cost:
-      coins: 50.0
+      gold: 50.0
       nacar: 0
     upgrade-cost:
-      coins: 500.0
+      gold: 500.0
       nacar: 10
     enchant-base-cost: 10
     rewards:
@@ -51,10 +51,10 @@ rods:
     break-chance: 12.0
     allow-auto-sell: false
     repair-cost:
-      coins: 120.0
+      gold: 120.0
       nacar: 0
     upgrade-cost:
-      coins: 600.0
+      gold: 600.0
       nacar: 15
     enchant-base-cost: 15
     rewards:
@@ -84,10 +84,10 @@ rods:
     break-chance: 9.0
     allow-auto-sell: false
     repair-cost:
-      coins: 250.0
+      gold: 250.0
       nacar: 5
     upgrade-cost:
-      coins: 1800.0
+      gold: 1800.0
       nacar: 35
     enchant-base-cost: 22
     rewards:
@@ -118,10 +118,10 @@ rods:
     break-chance: 6.0
     allow-auto-sell: true
     repair-cost:
-      coins: 450.0
+      gold: 450.0
       nacar: 10
     upgrade-cost:
-      coins: 5500.0
+      gold: 5500.0
       nacar: 80
     enchant-base-cost: 30
     rewards:
@@ -152,10 +152,10 @@ rods:
     break-chance: 4.0
     allow-auto-sell: true
     repair-cost:
-      coins: 800.0
+      gold: 800.0
       nacar: 18
     upgrade-cost:
-      coins: 16000.0
+      gold: 16000.0
       nacar: 180
     enchant-base-cost: 40
     rewards:
@@ -186,10 +186,10 @@ rods:
     break-chance: 2.0
     allow-auto-sell: true
     repair-cost:
-      coins: 1400.0
+      gold: 1400.0
       nacar: 30
     upgrade-cost:
-      coins: 48000.0
+      gold: 48000.0
       nacar: 400
     enchant-base-cost: 52
     rewards:
@@ -221,10 +221,10 @@ rods:
     break-chance: 1.0
     allow-auto-sell: true
     repair-cost:
-      coins: 2400.0
+      gold: 2400.0
       nacar: 50
     upgrade-cost:
-      coins: 140000.0
+      gold: 140000.0
       nacar: 900
     enchant-base-cost: 66
     rewards:
@@ -256,10 +256,10 @@ rods:
     break-chance: 0.0
     allow-auto-sell: true
     repair-cost:
-      coins: 0
+      gold: 0
       nacar: 0
     upgrade-cost:
-      coins: 400000.0
+      gold: 400000.0
       nacar: 2000
     enchant-base-cost: 82
     rewards:
@@ -291,10 +291,10 @@ rods:
     break-chance: 0.0
     allow-auto-sell: true
     repair-cost:
-      coins: 0
+      gold: 0
       nacar: 0
     upgrade-cost:
-      coins: 1200000.0
+      gold: 1200000.0
       nacar: 4500
     enchant-base-cost: 100
     rewards:
@@ -326,10 +326,10 @@ rods:
     break-chance: 0.0
     allow-auto-sell: true
     repair-cost:
-      coins: 0
+      gold: 0
       nacar: 0
     upgrade-cost:
-      coins: 3600000.0
+      gold: 3600000.0
       nacar: 10000
     enchant-base-cost: 120
     rewards:

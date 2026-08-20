@@ -18,11 +18,11 @@ fish:
 bag:
   opened: "{prefix}<gray>Abrindo Fish Bag..."
   weight-status: "<gray>Peso: <aqua>{current}<gray>/<aqua>{max} kg"
-  sold: "{prefix}<green>Você vendeu <yellow>x{amount} {fish}</yellow> por <yellow>${price} coins</yellow>."
-  sold_all: "{prefix}<green>Você vendeu <yellow>{count} <green>peixes por <yellow>${price} coins</yellow>."
+  sold: "{prefix}<green>Você vendeu <yellow>x{amount} {fish}</yellow> por <yellow>${price} Gold</yellow>."
+  sold_all: "{prefix}<green>Você vendeu <yellow>{count} <green>peixes por <yellow>${price} Gold</yellow>."
   empty: "{prefix}<red>Sua sacola está vazia."
   upgraded: "{prefix}<green>Limite da sacola aumentado para <aqua>{limit}<green>!"
-  upgrade-not-enough-coins: "{prefix}<red>Você não tem coins suficientes pra esse upgrade."
+  upgrade-not-enough-coins: "{prefix}<red>Você não tem Gold suficientes pra esse upgrade."
   bonus_line: "<gray>  ↳ Bônus: {bonuses}"
   auto_sold: "{prefix}<gold>⚙ Auto-Venda: <green>sua sacola encheu e foi vendida sozinha por <yellow>${price}<green>!"
 

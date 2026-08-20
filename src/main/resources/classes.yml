@@ -14,7 +14,7 @@ classes:
       coin-bonus: 10.0
       sell-bonus: 5.0
     prices:
-      coins: 1000.0
+      gold: 1000.0
       nacar: 50.0
     activator:
       material: LEATHER_CHESTPLATE
@@ -53,7 +53,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<green>Clique para evoluir"
       has:
@@ -79,7 +79,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<red>Sem recursos suficientes."
       previous:
@@ -104,7 +104,7 @@ classes:
       coin-bonus: 20.0
       sell-bonus: 10.0
     prices:
-      coins: 5000.0
+      gold: 5000.0
       nacar: 200.0
     activator:
       material: LEATHER_CHESTPLATE
@@ -144,7 +144,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<green>Clique para evoluir"
       has:
@@ -170,7 +170,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<red>Sem recursos suficientes."
       previous:
@@ -196,7 +196,7 @@ classes:
       coin-bonus: 35.0
       sell-bonus: 15.0
     prices:
-      coins: 15000.0
+      gold: 15000.0
       nacar: 500.0
     activator:
       material: LEATHER_CHESTPLATE
@@ -236,7 +236,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<green>Clique para evoluir"
       has:
@@ -262,7 +262,7 @@ classes:
         lore:
           - "<gray>+{fish-chance}% chance | +{coin-bonus}% nacar"
           - ""
-          - "<gray>Custo: <green>{coins} coins <gray>+ <aqua>{nacar} nacar"
+          - "<gray>Custo: <green>{coins} Gold <gray>+ <aqua>{nacar} nacar"
           - ""
           - "<red>Sem recursos suficientes."
       previous:

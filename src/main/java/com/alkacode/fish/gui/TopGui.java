@@ -55,9 +55,9 @@ public final class TopGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("top");
 
-        setItem(4, createItem(Material.COMPASS, "<gold>🏆 TOP: " + metricLabel(metric),
+        setAt(layout, 'M', createItem(Material.COMPASS, "<gold>🏆 TOP: " + metricLabel(metric),
                         "<gray>Ranking por " + metricLabel(metric).toLowerCase(),
                         "",
                         "<yellow>Clique para trocar a métrica"),
@@ -65,26 +65,25 @@ public final class TopGui extends FishGui {
 
         if (entries.isEmpty()) {
             setItem(13, createItem(Material.BARRIER, "<red>Ninguém no ranking ainda",
-                    "<gray>Volte depois de pescar um pouco!"), e -> {});
+                    "<gray>Volte depois de pescar um pouco!"));
         }
 
-        int slot = 10;
+        var contentSlots = layout.findSlots('0');
+        int idx = 0;
         int position = 1;
         for (Entry entry : entries) {
-            if (slot > 25) break;
-            if (slot % 9 == 8) slot += 2;
-            if (slot > 25) break;
+            if (idx >= contentSlots.size()) break;
 
             OfflinePlayer offline = Bukkit.getOfflinePlayer(entry.uuid());
             String name = offline.getName() != null ? offline.getName() : "Desconhecido";
+            int slot = contentSlots.get(idx++);
             setItem(slot, head(name, "<yellow>#" + position + " <white>" + name,
                     "",
-                    "<gray>" + metricLabel(metric) + ": <aqua>" + formatValue(metric, entry.value())), e -> {});
-            slot++;
+                    "<gray>" + metricLabel(metric) + ": <aqua>" + formatValue(metric, entry.value())));
             position++;
         }
 
-        setItem(31, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
     }
 
     private static String metricLabel(String metric) {

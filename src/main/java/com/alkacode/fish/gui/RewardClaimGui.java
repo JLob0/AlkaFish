@@ -17,14 +17,13 @@ public final class RewardClaimGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("reward-claim");
         List<PendingRewardEntity> pending = plugin.getPendingRewardService().getPending(player);
 
-        setItem(4, createItem(Material.CHEST, "<gold>🎁 Recompensas",
-                        "<gray>Pendentes: <yellow>" + pending.size()),
-                e -> {});
+        setAt(layout, 'H', createItem(Material.CHEST, "<gold>🎁 Recompensas",
+                        "<gray>Pendentes: <yellow>" + pending.size()));
 
-        setItem(49, createItem(Material.EMERALD_BLOCK, "<green>✔ Reivindicar Tudo",
+        setAt(layout, 'R', createItem(Material.EMERALD_BLOCK, "<green>✔ Reivindicar Tudo",
                         "<gray>Recebe todas as recompensas pendentes"),
                 e -> {
                     if (pending.isEmpty()) {
@@ -36,13 +35,15 @@ public final class RewardClaimGui extends FishGui {
                             java.util.Map.of("count", String.valueOf(count))));
                     new RewardClaimGui(plugin, player).open();
                 });
-        setItem(47, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishBagGui(plugin, player).open());
-        setItem(53, createItem(Material.BARRIER, "<red>❌ Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishBagGui(plugin, player).open());
+        setAt(layout, 'F', createItem(Material.BARRIER, "<red>❌ Fechar"), e -> player.closeInventory());
 
-        int slot = 10;
+        var contentSlots = layout.findSlots('0');
+        int idx = 0;
         for (PendingRewardEntity reward : pending) {
-            if (slot > 43) break;
+            if (idx >= contentSlots.size()) break;
             ItemStack icon = buildIcon(reward);
+            int slot = contentSlots.get(idx++);
             setItem(slot, icon, e -> {
                 if (plugin.getPendingRewardService().claim(player, reward.id())) {
                     player.sendMessage(plugin.getMessages().parse("rewards.claimed",
@@ -50,13 +51,11 @@ public final class RewardClaimGui extends FishGui {
                 }
                 new RewardClaimGui(plugin, player).open();
             });
-            slot++;
-            if (slot % 9 == 8) slot += 2;
         }
 
         if (pending.isEmpty()) {
             setItem(22, createItem(Material.GRAY_DYE, "<gray>Nenhuma recompensa pendente",
-                    "<gray>Pesque pra ganhar recompensas bônus!"), e -> {});
+                    "<gray>Pesque pra ganhar recompensas bônus!"));
         }
     }
 

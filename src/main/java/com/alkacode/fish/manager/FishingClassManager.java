@@ -77,7 +77,7 @@ public final class FishingClassManager {
                         bonus != null ? bonus.getDouble("fish-chance", 0) : 0,
                         bonus != null ? bonus.getDouble("coin-bonus", 0) : 0,
                         bonus != null ? bonus.getDouble("sell-bonus", 0) : 0,
-                        prices != null ? prices.getDouble("coins", 0) : 0,
+                        prices != null ? prices.getDouble("gold", 0) : 0,
                         prices != null ? prices.getDouble("nacar", 0) : 0,
                         c.getString("activator.name", id),
                         c.getStringList("activator.lore"),
@@ -123,7 +123,7 @@ public final class FishingClassManager {
         }
         if (stats.getUnlockedClasses().contains(classId)) return true;
         if (!fc.getPermission().isEmpty() && !player.hasPermission(fc.getPermission())) return false;
-        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "coins");
+        double coins = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "gold");
         if (coins < fc.getPriceCoins()) return false;
         double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
         return nacar >= fc.getPriceNacar();
@@ -135,7 +135,7 @@ public final class FishingClassManager {
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
 
         if (!stats.getUnlockedClasses().contains(classId)) {
-            plugin.getEconomyBridge().withdraw(player.getUniqueId(), "coins", fc.getPriceCoins());
+            plugin.getEconomyBridge().withdraw(player.getUniqueId(), "gold", fc.getPriceCoins());
             plugin.getEconomyBridge().withdraw(player.getUniqueId(), "nacar", fc.getPriceNacar());
             stats.getUnlockedClasses().add(classId);
         }

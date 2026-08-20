@@ -15,12 +15,13 @@ public final class EnchantGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("enchant");
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-        int slot = 10;
+        var contentSlots = layout.findSlots('E');
+        int idx = 0;
 
         for (RodEnchantment enc : plugin.getEnchantmentManager().getAllEnchantments()) {
-            if (slot > 16) break;
+            if (idx >= contentSlots.size()) break;
             int currentLevel = stats.getRodEnchantLevel(enc.getId());
             boolean canUpgrade = plugin.getEnchantmentManager().canUpgrade(player, enc.getId());
             boolean maxed = enc.getMaxLevel() != -1 && currentLevel >= enc.getMaxLevel();
@@ -36,6 +37,7 @@ public final class EnchantGui extends FishGui {
             final String enchantId = enc.getId();
             final boolean fMaxed = maxed;
             final boolean fCan = canUpgrade;
+            int slot = contentSlots.get(idx++);
             setItem(slot, item, e -> {
                 if (fMaxed) return;
                 if (fCan) {
@@ -46,10 +48,9 @@ public final class EnchantGui extends FishGui {
                             java.util.Map.of("cost", String.valueOf(cost))));
                 }
             });
-            slot++;
         }
 
-        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
-        setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
+        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

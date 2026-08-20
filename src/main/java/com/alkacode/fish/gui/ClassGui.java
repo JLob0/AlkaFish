@@ -15,12 +15,13 @@ public final class ClassGui extends FishGui {
 
     @Override
     public void render() {
-        fillBlack();
+        var layout = applyBorder("class");
         var stats = plugin.getPlayerDataManager().getStats(player.getUniqueId());
-        int slot = 10;
+        var contentSlots = layout.findSlots('C');
+        int idx = 0;
 
         for (FishingClass fc : plugin.getFishingClassManager().getAllClasses()) {
-            if (slot > 16) break;
+            if (idx >= contentSlots.size()) break;
 
             boolean has = stats.getUnlockedClasses().contains(fc.getId());
             boolean equipped = fc.getId().equals(stats.getActiveClassId());
@@ -44,6 +45,7 @@ public final class ClassGui extends FishGui {
             }
 
             final String classId = fc.getId();
+            int slot = contentSlots.get(idx++);
             setItem(slot, item, e -> {
                 if (equipped) {
                     player.sendMessage(plugin.getMessages().parse("class.already-equipped"));
@@ -57,10 +59,9 @@ public final class ClassGui extends FishGui {
                     player.sendMessage(plugin.getMessages().parse("class.need-previous"));
                 }
             });
-            slot++;
         }
 
-        setItem(18, createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
-        setItem(26, createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
+        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
     }
 }

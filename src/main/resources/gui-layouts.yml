@@ -1,0 +1,103 @@
+# AlkaFish - Layouts de GUI (posicoes configuraveis)
+# Regras:
+#   # = borda preta (preenche automatico via applyBorder)
+#   _ = vazio (nunca preenchido, nem por borda)
+#   Letras = slots controlados pelo Java (conteudo/acao fixa)
+#   0 = slot de lista dinamica (peixes, recompensas, skins, ranking, etc.)
+
+fishing-area:
+  rows: 5
+  layout:
+    - "####P####"
+    - "#___A___#"
+    - "#_VECTS_#"
+    - "#_X_RGI_#"
+    - "####F####"
+  # P=perfil, A=acao principal (ir/sair da area)
+  # V=vara, E=encantamentos, C=classes, T=torneio, S=sacola
+  # X=codex, R=ranking(top), G=pvp, I=invisibilidade, F=fechar
+
+rod:
+  rows: 3
+  layout:
+    - "#########"
+    - "#_R_U_D_#"
+    - "V#K#A###F"
+  # R=vara atual, U=upgrade, D=reparar/status
+  # V=voltar, K=skins, A=auto-upgrade, F=fechar
+
+enchant:
+  rows: 3
+  layout:
+    - "#########"
+    - "#EEEEEEE#"
+    - "V#######F"
+  # E=encantamento (lista dinamica, ate 7), V=voltar, F=fechar
+
+class:
+  rows: 3
+  layout:
+    - "#########"
+    - "#CCCCCCC#"
+    - "V#######F"
+  # C=classe (lista dinamica, ate 7), V=voltar, F=fechar
+
+tournament:
+  rows: 3
+  layout:
+    - "#########"
+    - "#_P_T_S_#"
+    - "V#######F"
+  # P=posicao, T=info do torneio, S=pontuacao, V=voltar, F=fechar
+
+fish-bag:
+  rows: 6
+  layout:
+    - "####H####"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "#LRXSAB##"
+  # H=header(info da sacola), 0=peixe (conteudo dinamico)
+  # L=aumentar limite, R=recompensas, X=codex, S=vender tudo, A=auto-venda, B=voltar
+
+codex:
+  rows: 6
+  layout:
+    - "####H####"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "####V####"
+  # H=header, 0=peixe (conteudo dinamico), V=voltar
+
+reward-claim:
+  rows: 6
+  layout:
+    - "####H####"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "#0000000#"
+    - "##V#R###F"
+  # H=header, 0=recompensa (conteudo dinamico), V=voltar, R=reivindicar tudo, F=fechar
+
+rod-skin:
+  rows: 3
+  layout:
+    - "#########"
+    - "#S000000#"
+    - "VP#####NF"
+  # S=skin padrao, 0=skin desbloqueada (conteudo dinamico, ate 6)
+  # V=voltar, P=pagina anterior, N=proxima pagina, F=fechar
+
+top:
+  rows: 4
+  layout:
+    - "####M####"
+    - "#0000000#"
+    - "#0000000#"
+    - "####V####"
+  # M=metrica (troca ao clicar), 0=ranking (conteudo dinamico), V=voltar

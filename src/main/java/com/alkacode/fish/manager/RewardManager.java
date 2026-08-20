@@ -59,7 +59,7 @@ public final class RewardManager {
                 Reward reward = new Reward(
                         r.getString("display-name", id),
                         items,
-                        r.getDouble("coins", 0),
+                        r.getDouble("gold", 0),
                         r.getDouble("nacar", 0),
                         r.getString("crate-id", null),
                         r.getInt("crate-key-amount", 0),
@@ -77,7 +77,7 @@ public final class RewardManager {
         Reward reward = rewards.get(rewardId);
         if (reward == null) return;
 
-        if (reward.coins() > 0) plugin.getEconomyBridge().deposit(player.getUniqueId(), "coins", reward.coins());
+        if (reward.coins() > 0) plugin.getEconomyBridge().deposit(player.getUniqueId(), "gold", reward.coins());
         if (reward.nacar() > 0) plugin.getEconomyBridge().deposit(player.getUniqueId(), "nacar", reward.nacar());
 
         for (ItemPayload item : reward.items()) {

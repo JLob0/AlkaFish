@@ -17,13 +17,13 @@ tournaments:
   sell-multiplier-during-tournament: 1.5
   rewards:
     1:
-      - "alkaeconomy give {player} coins 5000"
+      - "alkaeconomy give {player} gold 5000"
       - "give {player} diamond 5"
     2:
-      - "alkaeconomy give {player} coins 2500"
+      - "alkaeconomy give {player} gold 2500"
       - "give {player} diamond 2"
     3:
-      - "alkaeconomy give {player} coins 1000"
+      - "alkaeconomy give {player} gold 1000"
 
 integrations:
   alkashop-sell-enabled: true

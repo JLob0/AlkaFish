@@ -18,14 +18,14 @@ rewards:
     display-name: "<blue>Recompensa Rara"
     items:
       - {material: SALMON, amount: 1}
-    coins: 50
+    gold: 50
     messages:
       actionbar: "<blue>Você ganhou uma recompensa rara! Veja na sua Sacola de Peixes."
   legendary_reward:
     display-name: "<gold>Recompensa Lendária"
     items:
       - {material: DIAMOND, amount: 1}
-    coins: 500
+    gold: 500
     messages:
       title: "<gold>Recompensa Lendária!"
       actionbar: "<gold>Você ganhou uma recompensa lendária! Veja na sua Sacola de Peixes."
