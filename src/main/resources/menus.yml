@@ -1,0 +1,411 @@
+# AlkaFish - icone/nome/lore das GUIs (posicao continua em gui-layouts.yml).
+# Placeholders entre {} sao trocados na hora. MiniMessage. Conteudo genuinamente
+# dinamico (peixe pescado, vara real, recompensa real, listas de tamanho variavel)
+# continua no Java - so o "chrome" (botoes, cabecalhos, estados fixos) fica aqui.
+
+common:
+  border:
+    material: BLACK_STAINED_GLASS_PANE
+    name: "<black>♥"
+  voltar:
+    material: ARROW
+    name: "<yellow>⬅ Voltar"
+
+fishing-area:
+  perfil:
+    material: PLAYER_HEAD
+    name: "<aqua>Suas Informações"
+    lore:
+      - ""
+      - "<gray>❘ Nível da vara: <white>{rod-info}"
+      - "<gray>❘ Peixes pescados: <white>{caught}"
+      - "<gray>❘ Peso total pescado: <white>{weight}"
+      - ""
+      - "<gray>❘ Tempo pescando: <white>{fishing-time}"
+      - "<gray>❘ Nacar: <aqua>{nacar}"
+  acao-ir:
+    material: SEA_LANTERN
+    name: "<aqua>🏝 Ir para a Área de Pesca"
+    lore:
+      - "<gray>Teleportar e ganhar a vara"
+      - ""
+      - "<yellow>Clique para entrar"
+  acao-sair:
+    material: RED_BED
+    name: "<red>⬅ Sair da Área de Pesca"
+    lore:
+      - "<gray>Voltar para o spawn"
+      - ""
+      - "<yellow>Clique para sair"
+  acao-nao-configurada:
+    material: BARRIER
+    name: "<red>Área não configurada"
+    lore:
+      - "<gray>Configure com /alkafish setarea"
+  vara:
+    material: FISHING_ROD
+    name: "<aqua>🎣 Sua Vara"
+    lore:
+      - "<gray>Informações, upar e reparar"
+      - ""
+      - "<yellow>Clique para abrir"
+  encantamentos:
+    material: ENCHANTED_BOOK
+    name: "<dark_purple>✨ Encantamentos"
+    lore:
+      - "<gray>Sortudo, Multiplicador, Chaveiro"
+      - ""
+      - "<yellow>Clique para abrir"
+  classes:
+    material: LEATHER_CHESTPLATE
+    name: "<gold>🛡 Classes de Pesca"
+    lore:
+      - "<gray>Armaduras com bônus"
+      - ""
+      - "<yellow>Clique para abrir"
+  torneio:
+    material: TROPICAL_FISH
+    name: "<gold>🏆 Torneio"
+    lore:
+      - "<gray>Info do torneio ativo"
+      - ""
+      - "<yellow>Clique para abrir"
+  sacola:
+    material: EMERALD
+    name: "<green>💰 Sacola de Peixes"
+    lore:
+      - "<gray>Veja e venda seus peixes"
+      - ""
+      - "<yellow>Clique para abrir"
+  codex:
+    material: BOOK
+    name: "<yellow>📖 Codex de Peixes"
+    lore:
+      - "<gray>Coleção de peixes"
+      - ""
+      - "<yellow>Clique para abrir"
+  top:
+    material: COMPASS
+    name: "<gold>🏆 TOP Pescaria"
+    lore:
+      - "<gray>Ranking geral (peixes, nácar, peso, tempo)"
+      - ""
+      - "<yellow>Clique para abrir"
+  pvp-on:
+    material: IRON_SWORD
+    name: "<red>⚔ PvP: <bold>ON"
+    lore:
+      - "<gray>Só toma dano de outro jogador"
+      - "<gray>se os dois tiverem PvP ligado."
+      - ""
+      - "<yellow>Clique para desligar"
+  pvp-off:
+    material: SHIELD
+    name: "<green>🛡 PvP: <bold>OFF"
+    lore:
+      - "<gray>Só toma dano de outro jogador"
+      - "<gray>se os dois tiverem PvP ligado."
+      - ""
+      - "<yellow>Clique para ligar"
+  invisibilidade:
+    material: GLASS
+    name: "<gray>👻 Invisibilidade"
+    lore:
+      - "<gray>Toggle invisibilidade na área"
+      - ""
+      - "<yellow>Clique para alternar"
+  fechar-x:
+    material: BARRIER
+    name: "<red>❌ Fechar"
+
+rod:
+  upar:
+    material: ANVIL
+    name: "<green>⬆ Upgradar Vara"
+    lore:
+      - "<gray>Próxima: {proxima}"
+      - "<gray>Custo: <green>{custo-coins} Gold <gray>+ <aqua>{custo-nacar} nacar"
+      - ""
+      - "<yellow>Clique para upar"
+  upar-bloqueado:
+    material: RED_STAINED_GLASS_PANE
+    name: "<green>⬆ Upgradar Vara (Bloqueado)"
+    lore:
+      - "<gray>Próxima: {proxima}"
+      - "<gray>Custo: <green>{custo-coins} Gold <gray>+ <aqua>{custo-nacar} nacar"
+      - "<red>Você não tem recursos suficientes."
+  reparar:
+    material: IRON_INGOT
+    name: "<yellow>🔧 Reparar Vara"
+    lore:
+      - "<gray>Custo: <green>{custo-coins} Gold <gray>+ <aqua>{custo-nacar} nacar"
+      - ""
+      - "<yellow>Clique para reparar"
+  reparar-bloqueado:
+    material: RED_STAINED_GLASS_PANE
+    name: "<yellow>🔧 Reparar Vara (Bloqueado)"
+    lore:
+      - "<gray>Custo: <green>{custo-coins} Gold <gray>+ <aqua>{custo-nacar} nacar"
+      - "<red>Você não tem recursos suficientes."
+  em-boas-condicoes:
+    material: LIME_DYE
+    name: "<green>✔ Vara em boas condições"
+    lore:
+      - "<gray>Sua vara não precisa de reparos."
+  skins:
+    material: PAINTING
+    name: "<light_purple>🎨 Skins da Vara"
+    lore:
+      - "<gray>Troque a aparência da sua vara"
+      - "<gray>entre as que você já desbloqueou."
+      - ""
+      - "<yellow>Clique para abrir"
+  auto-upgrade-on:
+    material: LIME_DYE
+    name: "<green>⚙ Auto-Upgrade: <bold>ON"
+    lore:
+      - "<gray>Upa a vara sozinha assim que"
+      - "<gray>tiver Gold + nacar suficientes."
+      - ""
+      - "<yellow>Clique para desligar"
+  auto-upgrade-off:
+    material: GRAY_DYE
+    name: "<gray>⚙ Auto-Upgrade: <bold>OFF"
+    lore:
+      - "<gray>Upa a vara sozinha assim que"
+      - "<gray>tiver Gold + nacar suficientes."
+      - ""
+      - "<yellow>Clique para ligar"
+  auto-upgrade-bloqueado:
+    material: GRAY_DYE
+    name: "<gray>⚙ Auto-Upgrade <dark_gray>[VIP]"
+    lore:
+      - "<gray>Upa a vara sozinha assim que"
+      - "<gray>tiver Gold + nacar suficientes."
+      - ""
+      - "<red>Perk VIP não desbloqueado."
+  fechar:
+    material: BARRIER
+    name: "<red>Fechar"
+
+enchant:
+  fechar:
+    material: BARRIER
+    name: "<red>Fechar"
+
+class:
+  fechar:
+    material: BARRIER
+    name: "<red>Fechar"
+
+tournament:
+  sem-torneio:
+    material: BARRIER
+    name: "<red>Nenhum Torneio Ativo"
+    lore:
+      - "<gray>Aguarde o próximo torneio!"
+  info:
+    material: TROPICAL_FISH
+    name: "<gold>{tipo}"
+    lore:
+      - "<gray>Tempo restante: <yellow>{tempo-restante}"
+      - "<gray>Tipo: <yellow>{tipo-descricao}"
+      - ""
+      - "<gold>Top 3 ao vivo:"
+  posicao:
+    material: GOLD_INGOT
+    name: "<yellow>Sua Posição"
+    lore:
+      - "<gold>#{posicao}"
+  pontuacao:
+    material: EMERALD
+    name: "<green>Sua Pontuação"
+    lore:
+      - "<green>{pontuacao}"
+  fechar:
+    material: BARRIER
+    name: "<red>Fechar"
+
+fish-bag:
+  header:
+    material: BUCKET
+    name: "<aqua>📊 Sacola"
+    lore:
+      - "<gray>Peixes: <green>{total} <gray>/ <green>{capacidade}"
+      - "<gray>Peso total: <green>{peso}"
+  aumentar-limite:
+    material: GOLD_INGOT
+    name: "<yellow>📈 Aumentar Limite"
+    lore:
+      - "<gray>Limite atual: <white>{limite-atual}"
+      - "<gray>Próximo: <white>{proximo-limite} <gray>(+{incremento})"
+      - "<gray>Custo: <green>{custo} Gold"
+      - ""
+      - "<yellow>Clique para upar"
+  aumentar-limite-bloqueado:
+    material: IRON_INGOT
+    name: "<yellow>📈 Aumentar Limite"
+    lore:
+      - "<gray>Limite atual: <white>{limite-atual}"
+      - "<gray>Próximo: <white>{proximo-limite} <gray>(+{incremento})"
+      - "<gray>Custo: <green>{custo} Gold"
+      - ""
+      - "<red>Coins insuficientes"
+  recompensa:
+    material: CHEST
+    name: "<gold>🎁 Recompensa"
+    lore:
+      - "<gray>Itens e chaves de crate ganhos pescando"
+      - ""
+      - "<gray>Tipos: <yellow>{tipos}"
+      - "<gray>Total: <yellow>{total} Itens"
+      - ""
+      - "<yellow>Clique para abrir"
+  codex:
+    material: BOOK
+    name: "<yellow>📖 Codex de Peixes"
+    lore:
+      - "<gray>Sua coleção de peixes descobertos"
+      - ""
+      - "<yellow>Clique para abrir"
+  vender-tudo:
+    material: EMERALD_BLOCK
+    name: "<green>💰 Vender Tudo"
+    lore:
+      - "<gray>Vende todos os peixes da sacola"
+      - ""
+      - "<yellow>Clique para vender tudo"
+  auto-venda-on:
+    material: LIME_DYE
+    name: "<green>⚙ Auto-Venda: <bold>ON"
+    lore:
+      - "<gray>Vende a sacola inteira sozinha"
+      - "<gray>assim que ela encher."
+      - ""
+      - "<yellow>Clique para desligar"
+  auto-venda-off:
+    material: GRAY_DYE
+    name: "<gray>⚙ Auto-Venda: <bold>OFF"
+    lore:
+      - "<gray>Vende a sacola inteira sozinha"
+      - "<gray>assim que ela encher."
+      - ""
+      - "<yellow>Clique para ligar"
+  auto-venda-bloqueado:
+    material: GRAY_DYE
+    name: "<gray>⚙ Auto-Venda <dark_gray>[VIP]"
+    lore:
+      - "<gray>Vende a sacola inteira sozinha"
+      - "<gray>assim que ela encher."
+      - ""
+      - "<red>Perk VIP não desbloqueado."
+  entrada:
+    name: "<white>{fish-nome}"
+    lore:
+      - "<gray>Raridade: {raridade}"
+      - "<gray>Quantia: <green>{quantia}x"
+      - "<gray>Peso total: <green>{peso-total}"
+      - "<gray>Preço unitário: <green>{preco-unitario}"
+      - "<gray>Preço total: <green>{preco-total}"
+      - ""
+      - "<yellow>Clique para vender este peixe"
+
+codex:
+  header:
+    material: BOOK
+    name: "<yellow>📖 Codex de Peixes"
+    lore:
+      - "<gray>Peixes descobertos: <green>{descobertos}<gray>/{total}"
+
+reward-claim:
+  header:
+    material: CHEST
+    name: "<gold>🎁 Recompensas"
+    lore:
+      - "<gray>Pendentes: <yellow>{pendentes}"
+  reivindicar-tudo:
+    material: EMERALD_BLOCK
+    name: "<green>✔ Reivindicar Tudo"
+    lore:
+      - "<gray>Recebe todas as recompensas pendentes"
+  vazio:
+    material: GRAY_DYE
+    name: "<gray>Nenhuma recompensa pendente"
+    lore:
+      - "<gray>Pesque pra ganhar recompensas bônus!"
+  entrada-key:
+    name: "<aqua>🔑 {nome}"
+    lore:
+      - "<gray>Crate: <aqua>{crate}"
+      - "<gray>Quantidade: <yellow>{quantidade}x"
+      - ""
+      - "<yellow>Clique para reivindicar"
+  entrada-item:
+    name: "<yellow>{nome}"
+    lore:
+      - "<gray>Quantidade: <yellow>{quantidade}x"
+      - ""
+      - "<yellow>Clique para reivindicar"
+  fechar-x:
+    material: BARRIER
+    name: "<red>❌ Fechar"
+
+rod-skin:
+  padrao-selecionada:
+    material: LIME_DYE
+    name: "<green>✔ Skin Padrão"
+    lore:
+      - "<gray>Usa a textura da sua vara atual:"
+      - "<white>{vara}"
+      - ""
+      - "<green>Selecionada"
+  padrao-nao-selecionada:
+    material: GRAY_DYE
+    name: "<gray>Skin Padrão"
+    lore:
+      - "<gray>Usa a textura da sua vara atual:"
+      - "<white>{vara}"
+      - ""
+      - "<yellow>Clique para usar"
+  opcao-selecionada:
+    material: LIME_DYE
+    name: "<green>✔ {vara}"
+    lore:
+      - "<gray>Nível: <aqua>{nivel}"
+      - ""
+      - "<green>Selecionada"
+  opcao-nao-selecionada:
+    material: CYAN_DYE
+    name: "<aqua>{vara}"
+    lore:
+      - "<gray>Nível: <aqua>{nivel}"
+      - ""
+      - "<yellow>Clique para usar essa skin"
+  pagina-anterior:
+    material: ARROW
+    name: "<yellow>◀ Página Anterior"
+  proxima-pagina:
+    material: ARROW
+    name: "<yellow>Próxima Página ▶"
+  fechar:
+    material: BARRIER
+    name: "<red>Fechar"
+
+top:
+  metrica:
+    material: COMPASS
+    name: "<gold>🏆 TOP: {metrica}"
+    lore:
+      - "<gray>Ranking por {metrica-minusculo}"
+      - ""
+      - "<yellow>Clique para trocar a métrica"
+  vazio:
+    material: BARRIER
+    name: "<red>Ninguém no ranking ainda"
+    lore:
+      - "<gray>Volte depois de pescar um pouco!"
+  entrada:
+    name: "<yellow>#{posicao} <white>{nome}"
+    lore:
+      - ""
+      - "<gray>{metrica}: <aqua>{valor}"

@@ -2,9 +2,10 @@ package com.alkacode.fish.gui;
 
 import com.alkacode.fish.AlkaFishPlugin;
 import com.alkacode.fish.model.FishingRod;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Map;
 
 public final class RodGui extends FishGui {
 
@@ -57,18 +58,13 @@ public final class RodGui extends FishGui {
                     }
                 });
             } else {
-                setAt(layout, 'D', createItem(Material.LIME_DYE, "<green>✔ Vara em boas condições",
-                    "<gray>Sua vara não precisa de reparos."));
+                setAt(layout, 'D', icon("rod.em-boas-condicoes"));
             }
         }
 
         // K: skins - troca a textura entre varas já desbloqueadas sem mudar stats
         if (fRod != null && fRod.getLevel() > 0) {
-            setAt(layout, 'K', createItem(Material.PAINTING, "<light_purple>🎨 Skins da Vara",
-                    "<gray>Troque a aparência da sua vara",
-                    "<gray>entre as que você já desbloqueou.",
-                    "",
-                    "<yellow>Clique para abrir"), e -> new RodSkinGui(plugin, player).open());
+            setAt(layout, 'K', icon("rod.skins"), e -> new RodSkinGui(plugin, player).open());
         }
 
         // A: auto-upgrade (feature de VIP - via Perk Tree do AlkaVips)
@@ -86,56 +82,41 @@ public final class RodGui extends FishGui {
         }
 
         // V: voltar, F: fechar
-        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
-        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', icon("common.voltar"), e -> new FishingAreaGui(plugin, player).open());
+        setAt(layout, 'F', icon("rod.fechar"), e -> player.closeInventory());
     }
 
     private ItemStack createAutoUpgradeItem(boolean enabled) {
-        return createItem(enabled ? Material.LIME_DYE : Material.GRAY_DYE,
-                enabled ? "<green>⚙ Auto-Upgrade: <bold>ON" : "<gray>⚙ Auto-Upgrade: <bold>OFF",
-                "<gray>Upa a vara sozinha assim que",
-                "<gray>tiver Gold + nacar suficientes.",
-                "",
-                "<yellow>Clique para " + (enabled ? "desligar" : "ligar"));
+        return icon(enabled ? "rod.auto-upgrade-on" : "rod.auto-upgrade-off");
     }
 
     private ItemStack createAutoUpgradeLockedItem() {
-        return createItem(Material.GRAY_DYE, "<gray>⚙ Auto-Upgrade <dark_gray>[VIP]",
-                "<gray>Upa a vara sozinha assim que",
-                "<gray>tiver Gold + nacar suficientes.",
-                "",
-                "<red>Perk VIP não desbloqueado.");
+        return icon("rod.auto-upgrade-bloqueado");
     }
 
     private ItemStack createUpgradeItem(FishingRod next) {
-        return createItem(Material.ANVIL, "<green>⬆ Upgradar Vara",
-            "<gray>Próxima: " + next.getDisplayName(),
-            "<gray>Custo: <green>" + String.format("%.0f", next.getUpgradeCostCoins())
-                + " Gold <gray>+ <aqua>" + String.format("%.0f", next.getUpgradeCostNacar()) + " nacar",
-            "",
-            "<yellow>Clique para upar");
+        return icon("rod.upar", Map.of(
+                "proxima", next.getDisplayName(),
+                "custo-coins", String.format("%.0f", next.getUpgradeCostCoins()),
+                "custo-nacar", String.format("%.0f", next.getUpgradeCostNacar())));
     }
 
     private ItemStack createUpgradeBlockedItem(FishingRod next) {
-        return createItem(Material.RED_STAINED_GLASS_PANE, "<green>⬆ Upgradar Vara (Bloqueado)",
-            "<gray>Próxima: " + next.getDisplayName(),
-            "<gray>Custo: <green>" + String.format("%.0f", next.getUpgradeCostCoins())
-                + " Gold <gray>+ <aqua>" + String.format("%.0f", next.getUpgradeCostNacar()) + " nacar",
-            "<red>Você não tem recursos suficientes.");
+        return icon("rod.upar-bloqueado", Map.of(
+                "proxima", next.getDisplayName(),
+                "custo-coins", String.format("%.0f", next.getUpgradeCostCoins()),
+                "custo-nacar", String.format("%.0f", next.getUpgradeCostNacar())));
     }
 
     private ItemStack createRepairItem(FishingRod rod) {
-        return createItem(Material.IRON_INGOT, "<yellow>🔧 Reparar Vara",
-            "<gray>Custo: <green>" + String.format("%.0f", rod.getRepairCostCoins())
-                + " Gold <gray>+ <aqua>" + String.format("%.0f", rod.getRepairCostNacar()) + " nacar",
-            "",
-            "<yellow>Clique para reparar");
+        return icon("rod.reparar", Map.of(
+                "custo-coins", String.format("%.0f", rod.getRepairCostCoins()),
+                "custo-nacar", String.format("%.0f", rod.getRepairCostNacar())));
     }
 
     private ItemStack createRepairBlockedItem(FishingRod rod) {
-        return createItem(Material.RED_STAINED_GLASS_PANE, "<yellow>🔧 Reparar Vara (Bloqueado)",
-            "<gray>Custo: <green>" + String.format("%.0f", rod.getRepairCostCoins())
-                + " Gold <gray>+ <aqua>" + String.format("%.0f", rod.getRepairCostNacar()) + " nacar",
-            "<red>Você não tem recursos suficientes.");
+        return icon("rod.reparar-bloqueado", Map.of(
+                "custo-coins", String.format("%.0f", rod.getRepairCostCoins()),
+                "custo-nacar", String.format("%.0f", rod.getRepairCostNacar())));
     }
 }

@@ -1,8 +1,9 @@
 package com.alkacode.fish.gui;
 
 import com.alkacode.fish.AlkaFishPlugin;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
+
+import java.util.Map;
 
 /** Menu principal de pesca: ir para a área + acesso às funções premium.
  * Layout em hierarquia: linha 1 = ação principal (ir/sair da área), linha 2 = as 5
@@ -25,28 +26,20 @@ public final class FishingAreaGui extends FishGui {
         double nacar = plugin.getEconomyBridge().getBalance(player.getUniqueId(), "nacar");
 
         // P: header - resumo rápido do progresso do jogador.
-        setAt(layout, 'P', head(player.getName(), "<aqua>Suas Informações",
-                "",
-                "<gray>❘ Nível da vara: <white>" + stats.getRodLevel()
-                        + (rod != null ? " <gray>(<white>" + String.format("%.0f", rod.getSupportedWeight())
-                                + "kg<gray>, <white>" + rod.getDelaySeconds() + "s<gray>)" : ""),
-                "<gray>❘ Peixes pescados: <white>" + stats.getTotalCaught(),
-                "<gray>❘ Peso total pescado: <white>" + String.format("%.2f kg", stats.getTotalWeight()),
-                "",
-                "<gray>❘ Tempo pescando: <white>" + plugin.getFishingAreaManager().getFishingTime(player),
-                "<gray>❘ Nacar: <aqua>" + String.format("%.0f", nacar)));
+        String rodInfo = String.valueOf(stats.getRodLevel())
+                + (rod != null ? " <gray>(<white>" + String.format("%.0f", rod.getSupportedWeight())
+                        + "kg<gray>, <white>" + rod.getDelaySeconds() + "s<gray>)" : "");
+        setAt(layout, 'P', headIcon("fishing-area.perfil", player.getName(), Map.of(
+                "rod-info", rodInfo,
+                "caught", String.valueOf(stats.getTotalCaught()),
+                "weight", String.format("%.2f kg", stats.getTotalWeight()),
+                "fishing-time", plugin.getFishingAreaManager().getFishingTime(player),
+                "nacar", String.format("%.0f", nacar))));
 
         // A: ação principal - ir ou sair da área.
-        setAt(layout, 'A', createItem(configured
-                        ? (inArea ? Material.RED_BED : Material.SEA_LANTERN)
-                        : Material.BARRIER,
-                        configured ? (inArea ? "<red>⬅ Sair da Área de Pesca" : "<aqua>🏝 Ir para a Área de Pesca")
-                                : "<red>Área não configurada",
-                        configured
-                                ? (inArea ? "<gray>Voltar para o spawn" : "<gray>Teleportar e ganhar a vara")
-                                : "<gray>Configure com /alkafish setarea",
-                        "",
-                        configured ? (inArea ? "<yellow>Clique para sair" : "<yellow>Clique para entrar") : ""),
+        String acaoPath = !configured ? "fishing-area.acao-nao-configurada"
+                : (inArea ? "fishing-area.acao-sair" : "fishing-area.acao-ir");
+        setAt(layout, 'A', icon(acaoPath),
                 e -> {
                     if (!configured) return;
                     if (inArea) {
@@ -58,62 +51,25 @@ public final class FishingAreaGui extends FishGui {
                 });
 
         // V/E/C/T/S: as 5 funções principais.
-        setAt(layout, 'V', createItem(Material.FISHING_ROD, "<aqua>🎣 Sua Vara",
-                        "<gray>Informações, upar e reparar",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new RodGui(plugin, player).open());
-        setAt(layout, 'E', createItem(Material.ENCHANTED_BOOK, "<dark_purple>✨ Encantamentos",
-                        "<gray>Sortudo, Multiplicador, Chaveiro",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new EnchantGui(plugin, player).open());
-        setAt(layout, 'C', createItem(Material.LEATHER_CHESTPLATE, "<gold>🛡 Classes de Pesca",
-                        "<gray>Armaduras com bônus",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new ClassGui(plugin, player).open());
-        setAt(layout, 'T', createItem(Material.TROPICAL_FISH, "<gold>🏆 Torneio",
-                        "<gray>Info do torneio ativo",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new TournamentGui(plugin, player).open());
-        setAt(layout, 'S', createItem(Material.EMERALD, "<green>💰 Sacola de Peixes",
-                        "<gray>Veja e venda seus peixes",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new FishBagGui(plugin, player).open());
+        setAt(layout, 'V', icon("fishing-area.vara"), e -> new RodGui(plugin, player).open());
+        setAt(layout, 'E', icon("fishing-area.encantamentos"), e -> new EnchantGui(plugin, player).open());
+        setAt(layout, 'C', icon("fishing-area.classes"), e -> new ClassGui(plugin, player).open());
+        setAt(layout, 'T', icon("fishing-area.torneio"), e -> new TournamentGui(plugin, player).open());
+        setAt(layout, 'S', icon("fishing-area.sacola"), e -> new FishBagGui(plugin, player).open());
 
         // X/R/G/I: utilidades.
-        setAt(layout, 'X', createItem(Material.BOOK, "<yellow>📖 Codex de Peixes",
-                        "<gray>Coleção de peixes",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> new CodexGui(plugin, player).open());
-        setAt(layout, 'R', createItem(Material.COMPASS, "<gold>🏆 TOP Pescaria",
-                        "<gray>Ranking geral (peixes, nácar, peso, tempo)",
-                        "",
-                        "<yellow>Clique para abrir"),
-                e -> TopGui.openAsync(plugin, player, "fished"));
+        setAt(layout, 'X', icon("fishing-area.codex"), e -> new CodexGui(plugin, player).open());
+        setAt(layout, 'R', icon("fishing-area.top"), e -> TopGui.openAsync(plugin, player, "fished"));
         boolean pvpEnabled = plugin.getFishingAreaManager().isPvpEnabled(player);
-        setAt(layout, 'G', createItem(pvpEnabled ? Material.IRON_SWORD : Material.SHIELD,
-                        (pvpEnabled ? "<red>⚔ PvP: <bold>ON" : "<green>🛡 PvP: <bold>OFF"),
-                        "<gray>Só toma dano de outro jogador",
-                        "<gray>se os dois tiverem PvP ligado.",
-                        "",
-                        "<yellow>Clique para " + (pvpEnabled ? "desligar" : "ligar")),
+        setAt(layout, 'G', icon(pvpEnabled ? "fishing-area.pvp-on" : "fishing-area.pvp-off"),
                 e -> {
                     plugin.getFishingAreaManager().togglePvp(player);
                     refresh();
                 });
-        setAt(layout, 'I', createItem(Material.GLASS, "<gray>👻 Invisibilidade",
-                        "<gray>Toggle invisibilidade na área",
-                        "",
-                        "<yellow>Clique para alternar"),
+        setAt(layout, 'I', icon("fishing-area.invisibilidade"),
                 e -> plugin.getFishingAreaManager().toggleInvisibility(player));
 
         // F: fechar.
-        setAt(layout, 'F', createItem(Material.BARRIER, "<red>❌ Fechar"),
-                e -> player.closeInventory());
+        setAt(layout, 'F', icon("fishing-area.fechar-x"), e -> player.closeInventory());
     }
 }

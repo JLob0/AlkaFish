@@ -61,7 +61,7 @@ public final class ClassGui extends FishGui {
             });
         }
 
-        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new FishingAreaGui(plugin, player).open());
-        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', icon("common.voltar"), e -> new FishingAreaGui(plugin, player).open());
+        setAt(layout, 'F', icon("class.fechar"), e -> player.closeInventory());
     }
 }

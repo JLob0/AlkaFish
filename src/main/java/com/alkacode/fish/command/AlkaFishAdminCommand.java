@@ -44,6 +44,7 @@ public final class AlkaFishAdminCommand implements CommandExecutor {
                 plugin.getRewardManager().reload();
                 plugin.getTierManager().reload();
                 plugin.getMessages().reload();
+                plugin.getMenuConfig().reload();
                 send(sender, "admin.reloaded");
             }
             case "tournament", "torneio" -> handleTournament(sender, args);

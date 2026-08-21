@@ -50,7 +50,7 @@ public final class EnchantGui extends FishGui {
             });
         }
 
-        setAt(layout, 'V', createItem(Material.ARROW, "<yellow>⬅ Voltar"), e -> new RodGui(plugin, player).open());
-        setAt(layout, 'F', createItem(Material.BARRIER, "<red>Fechar"), e -> player.closeInventory());
+        setAt(layout, 'V', icon("common.voltar"), e -> new RodGui(plugin, player).open());
+        setAt(layout, 'F', icon("enchant.fechar"), e -> player.closeInventory());
     }
 }

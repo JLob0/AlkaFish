@@ -14,6 +14,7 @@ import com.alkacode.fish.database.repository.TournamentRecordRepository;
 import com.alkacode.fish.gui.CodexGui;
 import com.alkacode.fish.gui.FishBagGui;
 import com.alkacode.fish.gui.TournamentGui;
+import com.alkacode.fish.config.MenuConfig;
 import com.alkacode.fish.gui.layout.GuiLayoutLoader;
 import com.alkacode.fish.hooks.AlkaClansHook;
 import com.alkacode.fish.hooks.AlkaCratesHook;
@@ -63,6 +64,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     private FishMessages messages;
     private AlkaFishAPI api;
     private GuiLayoutLoader guiLayoutLoader;
+    private MenuConfig menuConfig;
 
     private FishManager fishManager;
     private PlayerDataManager playerDataManager;
@@ -124,6 +126,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
         saveResource("rewards.yml", false);
 
         this.guiLayoutLoader = new GuiLayoutLoader(this);
+        this.menuConfig = new MenuConfig(this);
         this.messages = new FishMessages(this);
 
         AlkaAPI apiCore = getAlkaAPI();
@@ -235,6 +238,7 @@ public final class AlkaFishPlugin extends AlkaPlugin {
     public FishMessages getMessages() { return messages; }
     public AlkaFishAPI getApi() { return api; }
     public GuiLayoutLoader getGuiLayoutLoader() { return guiLayoutLoader; }
+    public MenuConfig getMenuConfig() { return menuConfig; }
 
     public FishManager getFishManager() { return fishManager; }
     public PlayerDataManager getPlayerDataManager() { return playerDataManager; }

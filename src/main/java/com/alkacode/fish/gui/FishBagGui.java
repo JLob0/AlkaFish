@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Map;
 
 /** Sacola de peixes no banco: mostra stacks por tipo, vender stack ou vender tudo. */
 public final class FishBagGui extends FishGui {
@@ -26,23 +27,22 @@ public final class FishBagGui extends FishGui {
         double totalBagWeight = bag.stream().mapToDouble(FishBagEntryEntity::totalWeight).sum();
 
         int totalItems = bag.stream().mapToInt(FishBagEntryEntity::amount).sum();
-        setAt(layout, 'H', createItem(Material.BUCKET, "<aqua>📊 Sacola",
-                        "<gray>Peixes: <green>" + totalItems + " <gray>/ <green>" + (int) stats.getBagCapacity(),
-                        "<gray>Peso total: <green>" + String.format("%.2f kg", totalBagWeight)));
+        setAt(layout, 'H', icon("fish-bag.header", Map.of(
+                "total", String.valueOf(totalItems),
+                "capacidade", String.valueOf((int) stats.getBagCapacity()),
+                "peso", String.format("%.2f kg", totalBagWeight))));
 
         // Vara e Classes saíram daqui - já têm entrada própria no menu principal
         // (FishingAreaGui), não precisam duplicar aqui.
         boolean canUpgradeBag = plugin.getFishBagService().canUpgradeBagLimit(player);
         double bagUpgradeCost = plugin.getFishBagService().bagUpgradeCost(player);
         double bagLimitPerLevel = plugin.getConfig().getDouble("fishing-area.bag-upgrade.limit-per-level", 100);
-        setAt(layout, 'L', createItem(canUpgradeBag ? Material.GOLD_INGOT : Material.IRON_INGOT,
-                        "<yellow>📈 Aumentar Limite",
-                        "<gray>Limite atual: <white>" + (int) stats.getBagCapacity(),
-                        "<gray>Próximo: <white>" + (int) (stats.getBagCapacity() + bagLimitPerLevel)
-                                + " <gray>(+" + (int) bagLimitPerLevel + ")",
-                        "<gray>Custo: <green>" + String.format("%.0f", bagUpgradeCost) + " Gold",
-                        "",
-                        canUpgradeBag ? "<yellow>Clique para upar" : "<red>Coins insuficientes"),
+        Map<String, String> limiteInfo = Map.of(
+                "limite-atual", String.valueOf((int) stats.getBagCapacity()),
+                "proximo-limite", String.valueOf((int) (stats.getBagCapacity() + bagLimitPerLevel)),
+                "incremento", String.valueOf((int) bagLimitPerLevel),
+                "custo", String.format("%.0f", bagUpgradeCost));
+        setAt(layout, 'L', icon(canUpgradeBag ? "fish-bag.aumentar-limite" : "fish-bag.aumentar-limite-bloqueado", limiteInfo),
                 e -> {
                     if (plugin.getFishBagService().upgradeBagLimit(player)) {
                         player.sendMessage(plugin.getMessages().parse("bag.upgraded",
